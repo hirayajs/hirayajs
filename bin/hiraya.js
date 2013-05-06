@@ -16,7 +16,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/game":5,"./hiraya-game/level":6}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/level":5,"./hiraya-game/game":6}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -590,36 +590,6 @@ module.exports = Collection;
  */
 
 
-
-var Emitter = require('../hiraya-core/emitter');
-
-/**
- * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
- * as well as reference to instantiated objects that the Hiraya framework provides.
- *
- * @class Game
- * @extends Hiraya.Class
- * @namespace Hiraya
- */
-var Game = Emitter.extend({
-  /**
-   * The `ready` event fires when the window is ready and all the assets are loaded
-   *
-   * @event ready
-   */
-  ready: function() {
-  }
-});
-
-module.exports = Game;
-
-},{"../hiraya-core/emitter":3}],6:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
-
-
 var Emitter = require('../hiraya-core/emitter');
 var Collection = require('../hiraya-core/collection');
 
@@ -645,5 +615,35 @@ var Level = Emitter.extend({
 
 module.exports = Level;
 
-},{"../hiraya-core/emitter":3,"../hiraya-core/collection":4}]},{},[1])
+},{"../hiraya-core/collection":4,"../hiraya-core/emitter":3}],6:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+
+var Emitter = require('../hiraya-core/emitter');
+
+/**
+ * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
+ * as well as reference to instantiated objects that the Hiraya framework provides.
+ *
+ * @class Game
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Game = Emitter.extend({
+  /**
+   * The `ready` event fires when the window is ready and all the assets are loaded
+   *
+   * @event ready
+   */
+  ready: function() {
+  }
+});
+
+module.exports = Game;
+
+},{"../hiraya-core/emitter":3}]},{},[1])
 ;

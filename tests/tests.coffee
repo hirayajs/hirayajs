@@ -1,13 +1,20 @@
+if typeof require is 'function'
+  Hiraya = require '../src/'
+  expect = require 'expect.js'
+else
+  Hiraya = @Hiraya
+  expect = @expect
+
 describe 'hiraya-core', ->
 
   describe 'Hiraya.Class', ->
 
-    describe '#create', ->
+    describe '#create()', ->
       ## --------------------------
       it 'should instantiate a new self', ->
         Hiraya.Class.create()
 
-    describe '#extend', ->
+    describe '#extend()', ->
       ## --------------------------
       it 'should have super methods for method overrides', (done) ->
         ClassA = Hiraya.Class.extend
@@ -93,15 +100,16 @@ describe 'hiraya-core', ->
         emitter.on 'event', (arg1, arg2) ->
           if arg1 is message and arg2 is message2
             done()
-          done "this is not the droids!"
+          else
+            done "incorrect arguments"
         emitter.emit 'event', message, message2
 
   describe 'Hiraya.Collection', ->
-    describe '#add', ->
+    describe '#add()', ->
       it 'should add an item to the list', ->
+        a = name: 'James'
         c = Hiraya.Collection.create()
-        c.add name: 'James'
-        expect(true).to.be.ok()
+        c.add a
         expect(c.length).to.be(1)
 
     describe '#at', ->
@@ -121,11 +129,11 @@ describe 'hiraya-core', ->
         c.remove a
         expect(c.length).to.be(0)
 
-        ## describe '#length', ->
-        ##   it 'should return the correct children', ->
-        ##     a = Hiraya.Class.create name: 'James'
-        ##     b = Hiraya.Class.create name: 'Doris'
-        ##     c = Hiraya.Collection.create()
-        ##     c.add a
-        ##     c.add b
-        ##     expect(c.length).to.be(2)
+    describe '#length', ->
+      it 'should return the correct children', ->
+        a = Hiraya.Class.create name: 'James'
+        b = Hiraya.Class.create name: 'Doris'
+        c = Hiraya.Collection.create()
+        c.add a
+        c.add b
+        expect(c.length).to.be(2)
