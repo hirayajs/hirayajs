@@ -1,0 +1,27 @@
+{
+  "name": "hiraya",
+  "version": "0.0.1",
+  "description": "2D HTML5 Game Framework",
+  "main": "bin/hiraya.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/jamesflorentino/hiraya"
+  },
+  "keywords": [
+    "html5",
+    "game"
+  ],
+  "url": "https://github.com/jamesflorentino/hiraya",
+  "author": "James Florentino",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-watch": "~0.4.0",
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-contrib-connect": "~0.3.0",
+    "grunt-contrib-yuidoc": "~0.4.0"
+  }
+}
