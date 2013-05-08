@@ -39,7 +39,7 @@ function extendClass(BaseClass, properties) {
   }
 
   /**
-   * `Hiraya.Class` can be used for prototypal inheritance.
+   * `Hiraya.Class` is the heart of all Hiraya objects. It can be used for prototypal inheritance.
    *
    *     var Human = Hiraya.Class.extend({
    *        baseHealth: 100,
@@ -89,20 +89,44 @@ function extendClass(BaseClass, properties) {
   /**
    * Extends the base class
    * @method extend
-   * @param {Object} attributes
+   * @param {Object} attributes*
    * @static
-   * @return {Class}
+   * @return Class
    */
   Class.extend = function(attributes) {
-    return extendClass(Class, attributes);
+    var attributesArray = Array.prototype.slice.apply(arguments, arguments, 0);
+    var attribs = {};
+    for (var i=0; i < attributesArray.length; i++) {
+      var attrib = attributesArray[i];
+      for(var key in attrib) {
+        if (attrib.hasOwnProperty(key)) {
+          attribs[key] = attrib[key];
+        }
+      }
+    };
+    return extendClass(Class, attribs);
   };
 
   /**
-   * Instatiates the class
+   * Instatiates the class. You can optionally pass attributes to set as its default value.
+   *
+   * example:
+   *
+   *     var Car = Class.extend({
+   *       accleration: 10,
+   *       accelerate: function() {
+   *         this.position += this.acceleration;
+   *       }
+   *     });
+   *
+   *     var Ferrari = Car.create({
+   *       acceleration: 100
+   *     });
+   *
    * @method create
    * @param {Object} attributes
    * @static
-   * @return {Class}
+   * @return Class
    */
   Class.create = function(attributes) {
     var ClassExtend = Class.extend(attributes);

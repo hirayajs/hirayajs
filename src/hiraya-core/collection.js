@@ -80,10 +80,25 @@ var Collection = Emitter.extend({
    *
    * @method at
    * @param {Number} index
-   * @returns {Object}
+   * @returns Object
    */
   at: function(index) {
     return this._list[index];
+  },
+
+
+  /**
+   * Iterates to each element in the collection. If the callback parameter returns false, it will halt the looping operation.
+   *
+   * @method each
+   * @param {Function} fn
+   */
+  each: function(fn) {
+    for (var i=0, length = this._list.length; i < length; i++) {
+      if (fn(this._list[i]) === false) {
+        break;
+      }
+    };
   }
 });
 

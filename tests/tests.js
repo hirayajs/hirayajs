@@ -144,7 +144,7 @@
           return expect(c.length).to.be(1);
         });
       });
-      describe('#at', function() {
+      describe('#at()', function() {
         return it('should return the correct object', function() {
           var a, b, c;
           a = Hiraya.Class.create({
@@ -159,7 +159,7 @@
           return expect(c.at(0)).to.be(a);
         });
       });
-      describe('#remove', function() {
+      describe('#remove()', function() {
         return it('should remove an item from the list', function() {
           var a, c;
           a = Hiraya.Class.create({

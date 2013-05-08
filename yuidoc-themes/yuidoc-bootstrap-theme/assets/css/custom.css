@@ -11,7 +11,7 @@ body {
 
 pre, code {
   font-size: 0.8em;
-  line-height: 1.3;
+  line-height: 1.75;
 }
 
 /* -- Navigation Bar -------------------------------------------------------- */
@@ -97,5 +97,10 @@ pre, code {
 
 .content p {
   margin: 1.5em 0;
+}
+
+.well li {
+  list-style: none;
+  margin: 10px 0;
 }
 

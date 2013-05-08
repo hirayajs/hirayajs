@@ -4,9 +4,14 @@ var Hiraya = {
   Class: require('./hiraya-core/class'),
   Emitter: require('./hiraya-core/emitter'),
   Collection: require('./hiraya-core/collection'),
+  Stat: require('./hiraya-game/stat'),
+  Stats: require('./hiraya-game/stats'),
+  EntityTurnBased: require('./hiraya-game/entity-turnbased'),
+  Entity: require('./hiraya-game/entity'),
   /** hiraya-game **/
   Game: require('./hiraya-game/game'),
-  Level: require('./hiraya-game/level')
+  Level: require('./hiraya-game/level'),
+  LevelTurnBased: require('./hiraya-game/level-turnbased')
   /** hiraya-game/display **/
 };
 
@@ -16,7 +21,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/level":5,"./hiraya-game/game":6}],2:[function(require,module,exports){
+},{"./hiraya-core/emitter":2,"./hiraya-core/class":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/level":10,"./hiraya-game/level-turnbased":11}],3:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -58,7 +63,7 @@ function extendClass(BaseClass, properties) {
   }
 
   /**
-   * `Hiraya.Class` can be used for prototypal inheritance.
+   * `Hiraya.Class` is the heart of all Hiraya objects. It can be used for prototypal inheritance.
    *
    *     var Human = Hiraya.Class.extend({
    *        baseHealth: 100,
@@ -108,20 +113,44 @@ function extendClass(BaseClass, properties) {
   /**
    * Extends the base class
    * @method extend
-   * @param {Object} attributes
+   * @param {Object} attributes*
    * @static
-   * @return {Class}
+   * @return Class
    */
   Class.extend = function(attributes) {
-    return extendClass(Class, attributes);
+    var attributesArray = Array.prototype.slice.apply(arguments, arguments, 0);
+    var attribs = {};
+    for (var i=0; i < attributesArray.length; i++) {
+      var attrib = attributesArray[i];
+      for(var key in attrib) {
+        if (attrib.hasOwnProperty(key)) {
+          attribs[key] = attrib[key];
+        }
+      }
+    };
+    return extendClass(Class, attribs);
   };
 
   /**
-   * Instatiates the class
+   * Instatiates the class. You can optionally pass attributes to set as its default value.
+   *
+   * example:
+   *
+   *     var Car = Class.extend({
+   *       accleration: 10,
+   *       accelerate: function() {
+   *         this.position += this.acceleration;
+   *       }
+   *     });
+   *
+   *     var Ferrari = Car.create({
+   *       acceleration: 100
+   *     });
+   *
    * @method create
    * @param {Object} attributes
    * @static
-   * @return {Class}
+   * @return Class
    */
   Class.create = function(attributes) {
     var ClassExtend = Class.extend(attributes);
@@ -134,7 +163,7 @@ var Class = extendClass(function(){}, {});
 
 module.exports = Class;
 
-},{}],7:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -188,7 +217,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],8:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 (function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
 
 var EventEmitter = exports.EventEmitter = process.EventEmitter;
@@ -374,7 +403,7 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 })(require("__browserify_process"))
-},{"__browserify_process":7}],3:[function(require,module,exports){
+},{"__browserify_process":12}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -491,7 +520,7 @@ var Emitter = Class.extend({
 
 module.exports = Emitter;
 
-},{"events":8,"./class":2}],4:[function(require,module,exports){
+},{"events":13,"./class":3}],4:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -574,48 +603,311 @@ var Collection = Emitter.extend({
    *
    * @method at
    * @param {Number} index
-   * @returns {Object}
+   * @returns Object
    */
   at: function(index) {
     return this._list[index];
+  },
+
+
+  /**
+   * Iterates to each element in the collection. If the callback parameter returns false, it will halt the looping operation.
+   *
+   * @method each
+   * @param {Function} fn
+   */
+  each: function(fn) {
+    for (var i=0, length = this._list.length; i < length; i++) {
+      if (fn(this._list[i]) === false) {
+        break;
+      }
+    };
   }
 });
 
 module.exports = Collection;
 
-},{"./emitter":3}],5:[function(require,module,exports){
+},{"./emitter":2}],5:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
  */
 
-
-var Emitter = require('../hiraya-core/emitter');
-var Collection = require('../hiraya-core/collection');
+var Class = require('../hiraya-core/class');
 
 /**
- * `Hiraya.Level` manages the game logic and entity interaction.
+ * `Hiraya.Stat` manages the values for an RPG attribute.
+ * It handles things like making sure the value doesn't exceed its maximum capacity.
  *
- * @class Level
+ * It also provides some useful API for value manipulation.
+ *
+ * @class Stat
  * @extends Hiraya.Class
  * @namespace Hiraya
  */
-var Level = Emitter.extend({
+var Stat = Class.extend({
   /**
-   * @property entities
-   * @type {Array}
+   * The current value of the stat. To change this,
+   * use the `stat.setValue` command.
+   *
+   * @property value
+   * @type {Number}
+   * @default 0
    */
-  entities: null,
+  value: null,
+  
+  /**
+   * The maximum value for the stat.
+   *
+   * @property max
+   * @type {Number}
+   * @default 0
+   */
+  max: null,
 
+  /**
+   * Name of the stat.
+   *
+   * @property name
+   * @type {String}
+   */
+  name: null,
   init: function() {
-    this.entities = Collection.create();
-    this.parent();
+    this.reset(Math.max(this.value, this.max));
   },
+
+  /**
+   * Sets the value of the stat. Ensures that it doesn't go beyond zero.
+   *
+   * @method setValue
+   * @param {Number} value
+   * @chainable
+   */
+  setValue: function(value) {
+    this.value = Math.max(0, value);
+    this.value = Math.min(this.value, this.max);
+    return this;
+  },
+
+  /**
+   * Sets the value of the max value. Ensures that it doesn't go beyond zero.
+   *
+   * @method setMax
+   * @param {Number} value
+   * @chainable
+   */
+  setMax: function(value) {
+    this.max = Math.max(0, value);
+    return this;
+  },
+
+  /**
+   * Empties the value of the stat.
+   *
+   * @method empty
+   * @chainable
+   */
+  empty: function() {
+    this.value = 0;
+    return this;
+  },
+
+  /**
+   * Increases the value of the stat. Increments the `.value` property by 1 if the value argument is undefined.
+   *
+   * @method add
+   * @param {Number} [value=1]
+   * @chainable
+   */
+  add: function(value) {
+    this.setValue(this.value + (typeof value === 'number' ? value : 1));
+    return this;
+  },
+
+  /**
+   * Reduces the value by one. Decrements the `.value` property by 1 if the value argument is undefined.
+   *
+   * @method reduce
+   * @param {Number} [value=1]
+   * @chainable
+   */
+  reduce: function(value) {
+    this.setValue(this.value - (typeof value === 'number' ? value : 1));
+    return this;
+  },
+
+  /**
+   * Resets the value according to its max value. Max value can be optionally
+   * set by providing a value argument.
+   *
+   * @method reset
+   * @param {Number} [value=null]
+   * @chainable
+   */
+  reset: function(value) {
+    if (typeof value === 'number') {
+      this.setMax(value);
+    }
+    this.value = this.max;
+    return this;
+  },
+
+  /**
+   * Checks if the stat is full
+   *
+   * @method isMax
+   * @returns Boolean
+   */
+  isMax: function() {
+    return this.value === this.max;
+  },
+
+  /**
+   * Tells if the stat value is 0.
+   *
+   * @method isEmpty 
+   * @returns Boolean
+   */
+  isEmpty: function() {
+    return this.value === 0;
+  }
 });
 
-module.exports = Level;
+module.exports = Stat;
 
-},{"../hiraya-core/collection":4,"../hiraya-core/emitter":3}],6:[function(require,module,exports){
+},{"../hiraya-core/class":3}],6:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+var Class = require('../hiraya-core/class');
+var Stat = require('./stat');
+
+/**
+ * `Hiraya.Stats` handles all stat related object. This is quite useful as a container
+ * for all attributes for a character to prevent clutter in the attributes of a `Hiraya.Entity` instance.
+ *
+ * Although it is used primarily for RPG stats, you are free to use it elsewhere.
+ *
+ *     var stats = Hiraya.Stats.create();
+ *     stats
+ *       .set('health', 100)
+ *       .set('mana', 100);
+ *
+ * @class Stats
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Stats = Class.extend({
+  /**
+   * Default stat object returned in the `.get` method. Has a value of 1 and max value of 1.
+   *
+   * @property none
+   * @type {Stat}
+   */
+  none: null,
+  init: function() {
+    this.set('none', 0, 0);
+  },
+
+  /**
+   * Sets or creates the value of a stat attribute. You can optionally set the max value as well
+   *
+   * @method set
+   * @param {String} name
+   * @param {Number} value
+   * @param {Number} [max=value]
+   * @chainable
+   */
+  set: function(name, value, max) {
+    var stat = this[name];
+    var maxValue = typeof max === 'number' ? max : value;
+    if (stat) {
+      stat.setValue(value);
+      stat.setMax(maxValue);
+    } else {
+      this[name] = Stat.create({
+        name: name,
+        value: value,
+        max: maxValue
+      });
+    }
+    return this;
+  },
+
+  /**
+   * Returns a stat attribute by name. Returns an empty stat object if the stat name doesn't exist.
+   *
+   *     var stats = Hiraya.Stats.create();
+   *     stats
+   *       .set('health', 100)
+   *       .set('mana', 100);
+   *     stats.get('health').value; // -> 100
+   *     stats.get('noneExistingStatName').value; // -> 0
+   *
+   *
+   * @method get
+   * @param {String} name
+   * @returns Hiraya.Stat
+   */
+  get: function(name) {
+    return this[name] ? this[name] : this['none'];
+  }
+});
+
+module.exports = Stats;
+
+},{"../hiraya-core/class":3,"./stat":5}],7:[function(require,module,exports){
+var Entity = require('./entity');
+
+var EntityTurnBased = Entity.extend({
+  init: function() {
+    this.parent();
+    this.stats.set('turn', 0, 100);
+    this.stats.set('turnspeed', 10);
+  }
+});
+
+module.exports = EntityTurnBased;
+
+},{"./entity":8}],8:[function(require,module,exports){
+var GetterSetter = require('../hiraya-core/getter-setter');
+var Stats = require('./stats');
+
+var Entity = GetterSetter.extend({
+  init: function() {
+    if (this.id === undefined) {
+      this.id = Entity.id++;
+    }
+    this.stats = Stats.create();
+    this.stats
+      .set('health', 100)
+      .set('attack', 100);
+    this.parent();
+  },
+  attack: function(enemy) {
+    enemy.damage(this.stats.attack.value);
+    return this;
+  },
+  damage: function(damage) {
+    this.stats.health.reduce(damage);
+    return this;
+  },
+  setStats: function(attributes) {
+    for(var key in attributes) {
+      if (attributes.hasOwnProperty(key)) {
+        this[key] = Stat.create({ max: attributes[key] });
+      }
+    }
+  }
+});
+
+Entity.id = 0;
+
+module.exports = Entity;
+
+},{"../hiraya-core/getter-setter":14,"./stats":6}],9:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -645,5 +937,270 @@ var Game = Emitter.extend({
 
 module.exports = Game;
 
-},{"../hiraya-core/emitter":3}]},{},[1])
+},{"../hiraya-core/emitter":2}],10:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+var Emitter = require('../hiraya-core/emitter');
+var Collection = require('../hiraya-core/collection');
+var Entity = require('./entity');
+
+/**
+ * `Hiraya.Level` manages the game logic and entity interaction.
+ *
+ * ### Events
+ *
+ * - `addedEntity`
+ *
+ * @class Level
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Level = Emitter.extend({
+  /**
+   * @property entities
+   * @type {Array}
+   */
+  entities: null,
+
+  init: function() {
+    this.entities = Collection.create();
+    this.parent();
+  },
+
+  /**
+   * Adds an entity into the collection based on attributes.
+   *
+   * Following is an example format:
+   *
+   *     level.addEntity({
+   *       name: 'Swordsman',
+   *       stats: {
+   *         health: [500, 1000] // value, max
+   *         attack: [100] // value, max
+   *       }
+   *     })
+   *
+   * @method addEntity
+   * @param {Object} attributes
+   * @chainable
+   */
+  addEntity: function(attributes) {
+    // attributes.stats gets overwritten in library
+    var entity = this.createEntity(attributes);
+    var stats = attributes.stats;
+    for (var key in stats) {
+      if (stats.hasOwnProperty(key)) {
+        var stat = stats[key];
+        entity.stats.set(key, stat[0], stat[1]);
+      }
+    }
+    this.entities.add(entity);
+    this.addedEntity(entity);
+    return this;
+  },
+
+  /**
+   * Creates a `Hiraya.Entity` from a class. Use this to override the classname you wish to use.
+   *
+   * @method createEntity
+   * @param {Object} attributes
+   * @returns Hiraya.Entity
+   */
+  createEntity: function(attributes) {
+    return Entity.create(attributes);
+  },
+
+  /**
+   * When an entity is added.
+   *
+   * @event addedEntity
+   * @param {Entity} entity
+   */
+  addedEntity: function(entity) {
+  }
+
+});
+
+module.exports = Level;
+
+},{"../hiraya-core/emitter":2,"../hiraya-core/collection":4,"./entity":8}],11:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+var Level = require('./level');
+var EntityTurnBased = require('./entity-turnbased');
+
+/**
+ * `Hiraya.LevelTurnBased` manages entities and game logic for turn-based games.
+ *
+ * ### Events
+ *
+ * - `gotTurn`
+ * - `addedEntity`
+ * - `hasWinner`
+ *
+ * @class LevelTurnBased
+ * @extends Hiraya.Level
+ * @namespace Hiraya
+ */
+var LevelTurnBased = Level.extend({
+  /**
+   * Creates a `Hiraya.EntityTurnBased` class. This overrides the original method in the `Hiraya.Level` class.
+   *
+   * @method createEntity
+   * @param {Object} attributes
+   * @returns Hiraya.EntityTurnBased
+   */
+  createEntity: function(attributes) {
+    return EntityTurnBased.create(attributes);
+  },
+
+  /**
+   * Determines how fast the tick for the turn calculation will be. Internal use only.
+   *
+   * @property _tickSpeed
+   * @type {Number}
+   * @private
+   * @default 1
+   */
+  _tickSpeed: 1,
+
+  /**
+   * A timeout identifier for the tick operation.
+   *
+   * @property _turnTimeout
+   * @private
+   * @type {Number}
+   */
+  _turnTimeout: null,
+
+  /**
+   * Finds the next entity to take its turn.
+   *
+   * @method getTurn
+   */
+  getTurn: function() {
+    var entity, _this = this;
+    var tick = function() {
+      entity = _this._getEntityTurn();
+      if (!entity) {
+        setTimeout(function() {
+          tick();
+        }, _this._tickSpeed);
+      } else {
+        entity.stats.turn.empty();
+        _this.gotTurn(entity);
+      }
+    }
+    tick();
+  },
+
+  /**
+   * Invoked when an entity is taking its turn
+   *
+   * @event gotTurn
+   * @param {Hiraya.EntityTurnBased} entityTurnBased
+   */
+  gotTurn: function(entityTurnBased) {
+  },
+
+  /**
+   * Increases the entities' turn stat by 1 and returns an entity if it has reached its max turn stat value
+   *
+   * @method _getEntityTurn
+   * @private
+   * @returns Hiraya.EntityTurnBased
+   */
+  _getEntityTurn: function() {
+    var total = this.entities.length;
+    var entity;
+    var result;
+    for(var i=0; i<total; i++) {
+      entity = this.entities.at(i);
+      entity.stats.turn.add(entity.stats.get('turnspeed').value);
+      if (entity.stats.turn.isMax()) {
+        result = entity;
+        break;
+      }
+    }
+    return result;
+  },
+
+  /**
+   * Checks to see if there is already a winning entity in the game.
+   *
+   * @method evaluateEntities
+   * @returns null
+   */
+  evaluateEntities: function() {
+    var enabled = [];
+    var disabled = [];
+    this.entities.each(function(entity) {
+      if (entity.stats.health.isEmpty()) {
+        disabled.push(entity);
+      } else {
+        enabled.push(entity);
+      }
+    });
+    if (enabled.length <= 1) {
+      this.hasWinner(enabled[0]);
+    }
+  },
+
+  /**
+   * Fires when a winner has been announced
+   *
+   * @event hasWinner
+   * @param {entity} Hiraya.EntityTurnBased
+   * @returns null
+   */
+  hasWinner: function(entity) {
+  }
+});
+
+
+module.exports = LevelTurnBased;
+
+},{"./level":10,"./entity-turnbased":7}],14:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-core
+ */
+
+var Emitter = require('./emitter');
+
+/**
+ * `Hiraya.GetterSetter` enables a setter and getter API which also dispatches
+ * an event whenever a property has changed.
+ *
+ *     var cat = Hiraya.GetterSetter.create();
+ *     cat.on('health', function(hp) {
+ *       console.log('health has changed to',  hp);
+ *     };)
+ *     cat.set('hp', 10); // health has changed to 10
+ *
+ * @class GetterSetter
+ * @extends Hiraya.Emitter
+ * @namespace Hiraya
+ */
+var GetterSetter = Emitter.extend({
+  set: function(key, value) {
+    this[key] = value;
+    this.emit(key, value);
+  },
+  get: function(key) {
+    return this.hasOwnProperty(key) ? this[key] : null;
+  }
+});
+
+module.exports = GetterSetter;
+
+},{"./emitter":2}]},{},[1])
 ;

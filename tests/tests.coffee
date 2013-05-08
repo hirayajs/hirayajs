@@ -6,9 +6,7 @@ else
   expect = @expect
 
 describe 'hiraya-core', ->
-
   describe 'Hiraya.Class', ->
-
     describe '#create()', ->
       ## --------------------------
       it 'should instantiate a new self', ->
@@ -112,7 +110,7 @@ describe 'hiraya-core', ->
         c.add a
         expect(c.length).to.be(1)
 
-    describe '#at', ->
+    describe '#at()', ->
       it 'should return the correct object', ->
         a = Hiraya.Class.create name: 'James'
         b = Hiraya.Class.create name: 'Doris'
@@ -121,7 +119,7 @@ describe 'hiraya-core', ->
         c.add b
         expect(c.at(0)).to.be(a)
 
-    describe '#remove', ->
+    describe '#remove()', ->
       it 'should remove an item from the list', ->
         a = Hiraya.Class.create name: 'James'
         c = Hiraya.Collection.create()
