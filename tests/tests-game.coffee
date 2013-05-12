@@ -68,6 +68,21 @@ describe 'hiraya-game', ->
       expect(entity.stats.turn).to.be.ok()
     it 'should have a turnspeed attribute', ->
       expect(entity.stats.turnspeed).to.be.ok()
+  describe 'Hiraya.Tile', ->
+    tile = Hiraya.Tile.create x: 0, y: 0
+    entity = Hiraya.Entity.create()
+    describe '#occupy(entity)', ->
+      it 'should be able to contain entities', ->
+        tile.occupy entity
+        expect(tile.has(entity)).to.be.ok()
+    describe '#vacate(entity)', ->
+      it 'should be able to remove entities from itself', ->
+        tile.vacate entity
+        expect(tile.has(entity)).to.not.be.ok()
+    describe '#isOccupied', ->
+      it 'should know if it has occupants in it', ->
+        tile.occupy entity
+        expect(tile.isOccupied()).to.be.ok()
   describe 'Hiraya.Level', ->
     level = Hiraya.Level.create()
     describe '#entities', ->
@@ -79,7 +94,6 @@ describe 'hiraya-game', ->
           health: [100,100]
         level.addEntity attributes
         expect(level.entities.at(0).stats.health.value).to.be(attributes.stats.health[0])
-
   describe 'Hiraya.LevelTurnBased', ->
     level = Hiraya.LevelTurnBased.create()
     describe '#addEntity(attributes)', ->
@@ -112,10 +126,7 @@ describe 'hiraya-game', ->
       it 'should be able to announce a winner when only one entity is alive', (done) ->
         firstEntity = level.entities.at 0
         level.hasWinner = (entity) ->
-          if entity
-            console.log entity
-            do done
-
+          do done
         level.entities.each (entity) ->
           unless firstEntity is entity
             do entity.stats.health.empty

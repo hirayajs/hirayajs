@@ -109,6 +109,32 @@
         return expect(entity.stats.turnspeed).to.be.ok();
       });
     });
+    describe('Hiraya.Tile', function() {
+      var entity, tile;
+      tile = Hiraya.Tile.create({
+        x: 0,
+        y: 0
+      });
+      entity = Hiraya.Entity.create();
+      describe('#occupy(entity)', function() {
+        return it('should be able to contain entities', function() {
+          tile.occupy(entity);
+          return expect(tile.has(entity)).to.be.ok();
+        });
+      });
+      describe('#vacate(entity)', function() {
+        return it('should be able to remove entities from itself', function() {
+          tile.vacate(entity);
+          return expect(tile.has(entity)).to.not.be.ok();
+        });
+      });
+      return describe('#isOccupied', function() {
+        return it('should know if it has occupants in it', function() {
+          tile.occupy(entity);
+          return expect(tile.isOccupied()).to.be.ok();
+        });
+      });
+    });
     describe('Hiraya.Level', function() {
       var level;
       level = Hiraya.Level.create();
@@ -178,10 +204,7 @@
           var firstEntity;
           firstEntity = level.entities.at(0);
           level.hasWinner = function(entity) {
-            if (entity) {
-              console.log(entity);
-              return done();
-            }
+            return done();
           };
           level.entities.each(function(entity) {
             if (firstEntity !== entity) {

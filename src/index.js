@@ -9,6 +9,7 @@ var Hiraya = {
   Entity: require('./hiraya-game/entity'),
   /** hiraya-game **/
   Game: require('./hiraya-game/game'),
+  Tile: require('./hiraya-game/tile'),
   Level: require('./hiraya-game/level'),
   LevelTurnBased: require('./hiraya-game/level-turnbased')
   /** hiraya-game/display **/

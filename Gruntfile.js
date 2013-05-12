@@ -1,4 +1,11 @@
 module.exports = function(grunt) {
+  grunt.loadNpmTasks('grunt-contrib-yuidoc');
+  grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+
+
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     yuidoc: {
@@ -33,7 +40,11 @@ module.exports = function(grunt) {
       }
     },
     browserify: {
-      'bin/hiraya.js': 'src/index.js'
+      main: {
+        src: ['src/index.js'],
+        dest: 'bin/hiraya.js'
+      }
+      //'bin/hiraya.js': 'src/index.js'
     },
 
     watch: {
@@ -48,15 +59,8 @@ module.exports = function(grunt) {
     },
 
   });
-  grunt.loadNpmTasks('grunt-contrib-yuidoc');
-  grunt.loadNpmTasks('grunt-contrib-connect');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-browserify');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-
-
-  grunt.registerTask('default', 'connect:server');
-  grunt.registerTask('compile', 'browserify', 'uglify:build');
+  grunt.registerTask('server', 'connect:server');
+  grunt.registerTask('default', ['dev', 'uglify:build', 'yuidoc']);
   grunt.registerTask('dev', 'browserify');
   grunt.registerTask('docs', 'yuidoc');
 };

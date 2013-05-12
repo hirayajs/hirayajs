@@ -10,6 +10,7 @@ var Hiraya = {
   Entity: require('./hiraya-game/entity'),
   /** hiraya-game **/
   Game: require('./hiraya-game/game'),
+  Tile: require('./hiraya-game/tile'),
   Level: require('./hiraya-game/level'),
   LevelTurnBased: require('./hiraya-game/level-turnbased')
   /** hiraya-game/display **/
@@ -21,7 +22,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/emitter":2,"./hiraya-core/class":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/level":10,"./hiraya-game/level-turnbased":11}],3:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/level":11,"./hiraya-game/level-turnbased":12}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -163,7 +164,7 @@ var Class = extendClass(function(){}, {});
 
 module.exports = Class;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -217,7 +218,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
 
 var EventEmitter = exports.EventEmitter = process.EventEmitter;
@@ -403,7 +404,7 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 })(require("__browserify_process"))
-},{"__browserify_process":12}],2:[function(require,module,exports){
+},{"__browserify_process":13}],3:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -520,7 +521,7 @@ var Emitter = Class.extend({
 
 module.exports = Emitter;
 
-},{"events":13,"./class":3}],4:[function(require,module,exports){
+},{"events":14,"./class":2}],4:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -627,7 +628,7 @@ var Collection = Emitter.extend({
 
 module.exports = Collection;
 
-},{"./emitter":2}],5:[function(require,module,exports){
+},{"./emitter":3}],5:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -775,7 +776,7 @@ var Stat = Class.extend({
 
 module.exports = Stat;
 
-},{"../hiraya-core/class":3}],6:[function(require,module,exports){
+},{"../hiraya-core/class":2}],6:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -858,7 +859,7 @@ var Stats = Class.extend({
 
 module.exports = Stats;
 
-},{"../hiraya-core/class":3,"./stat":5}],7:[function(require,module,exports){
+},{"../hiraya-core/class":2,"./stat":5}],7:[function(require,module,exports){
 var Entity = require('./entity');
 
 var EntityTurnBased = Entity.extend({
@@ -872,10 +873,30 @@ var EntityTurnBased = Entity.extend({
 module.exports = EntityTurnBased;
 
 },{"./entity":8}],8:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
 var GetterSetter = require('../hiraya-core/getter-setter');
 var Stats = require('./stats');
 
+/**
+ * A basic game entity that has basic API like stats, attack and damage commands.
+ *
+ * @class Entity
+ * @extends Hiraya.GetterSetter
+ * @namespace Hiraya
+ */
 var Entity = GetterSetter.extend({
+  /**
+   * The id of the entity. Can be set uniquely or use the default Entity class ID
+   *
+   * @property id
+   * @type {Number}
+   */
+  id: null,
   init: function() {
     if (this.id === undefined) {
       this.id = Entity.id++;
@@ -886,14 +907,37 @@ var Entity = GetterSetter.extend({
       .set('attack', 100);
     this.parent();
   },
+
+  /**
+   * Attacks an enemy based on its attack stat value
+   *
+   * @method attack
+   * @param {Entity} enemy
+   * @chainable
+   */
   attack: function(enemy) {
     enemy.damage(this.stats.attack.value);
     return this;
   },
+
+  /**
+   * Reduces health by 1
+   *
+   * @method damage
+   * @param {Number} damage
+   * @chainable
+   */
   damage: function(damage) {
     this.stats.health.reduce(damage);
     return this;
   },
+
+  /**
+   * Set the entity's attributes
+   *
+   * @method setStats
+   * @param {Object} attributes
+   */
   setStats: function(attributes) {
     for(var key in attributes) {
       if (attributes.hasOwnProperty(key)) {
@@ -903,11 +947,18 @@ var Entity = GetterSetter.extend({
   }
 });
 
+/**
+ * An id counter for the Entity class
+ *
+ * @property id
+ * @static
+ * @type {Number}
+ */
 Entity.id = 0;
 
 module.exports = Entity;
 
-},{"../hiraya-core/getter-setter":14,"./stats":6}],9:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":15,"./stats":6}],9:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -937,7 +988,134 @@ var Game = Emitter.extend({
 
 module.exports = Game;
 
-},{"../hiraya-core/emitter":2}],10:[function(require,module,exports){
+},{"../hiraya-core/emitter":3}],10:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+var Class = require('../hiraya-core/class');
+
+/**
+ * A tile for a level with tiles
+ *
+ * @class Tile
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Tile = Class.extend({
+
+  /**
+   * x-axis coordinate
+   *
+   * @property x
+   * @type {Number}
+   */
+  x: null,
+
+  /**
+   * y-axis coordinate
+   *
+   * @property y
+   * @type {Number}
+   */
+  y: null,
+
+  z: null,
+
+  /**
+   * Determining if the tile is passable. Used in the A-star algorithm.
+   *
+   * @property wall
+   * @type {Boolean}
+   * @default false
+   */
+  wall: null,
+
+  /**
+   * List of entities occupying this tile
+   *
+   * @property entities
+   * @type {Array}
+   */
+  entities: null,
+
+  /**
+   * Returns the score of the tile used in the a-star algorithm.
+   *
+   * @method val
+   * @returns {Number} score
+   */
+  val: function() {
+    return this.entities.length || this.wall ? 1000 : 1;
+  },
+
+  init: function() {
+    this.entities = [];
+  },
+
+  /**
+   * Returns a simplified JSON format of this tile that returns the x, y and z property
+   *
+   * @method json
+   * @returns {Object} json
+   */
+  json: function() {
+    return {
+      x: this.x,
+      y: this.y,
+      z: this.z
+    }
+  },
+
+  /**
+   * Instructs the tile to let the entity occupy it.
+   *
+   * @method occupy
+   * @param {Entity} entity
+   */
+  occupy: function(entity) {
+    if (!this.has(entity)) {
+      this.entities.push(entity);
+    }
+  },
+
+  /**
+   * Checks if the entitiy exists in this tile
+   *
+   * @method has
+   * @param {Entity} entity
+   * @returns Boolean 
+   */
+  has: function(entity) {
+    return this.entities.indexOf(entity) > -1;
+  },
+
+  /**
+   * Removes the entity from the tile
+   *
+   * @method vacate
+   * @param {Entity} entity
+   */
+  vacate: function(entity) {
+    this.entities.splice(this.entities.indexOf(entity), 1);
+  },
+
+  /**
+   * Tells if the tile is occupied by entities.
+   *
+   * @method isOccupied
+   * @returns Boolean
+   */
+  isOccupied: function() {
+    return this.entities.length > 0;
+  }
+});
+
+module.exports = Tile;
+
+},{"../hiraya-core/class":2}],11:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1027,7 +1205,7 @@ var Level = Emitter.extend({
 
 module.exports = Level;
 
-},{"../hiraya-core/emitter":2,"../hiraya-core/collection":4,"./entity":8}],11:[function(require,module,exports){
+},{"../hiraya-core/emitter":3,"../hiraya-core/collection":4,"./entity":8}],12:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1168,7 +1346,7 @@ var LevelTurnBased = Level.extend({
 
 module.exports = LevelTurnBased;
 
-},{"./level":10,"./entity-turnbased":7}],14:[function(require,module,exports){
+},{"./level":11,"./entity-turnbased":7}],15:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -1202,5 +1380,5 @@ var GetterSetter = Emitter.extend({
 
 module.exports = GetterSetter;
 
-},{"./emitter":2}]},{},[1])
+},{"./emitter":3}]},{},[1])
 ;
