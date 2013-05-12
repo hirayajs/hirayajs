@@ -68,7 +68,7 @@ var LevelTurnBased = Level.extend({
         entity.stats.turn.empty();
         _this.gotTurn(entity);
       }
-    }
+    };
     tick();
   },
 

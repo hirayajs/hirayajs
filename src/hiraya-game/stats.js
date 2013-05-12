@@ -74,7 +74,7 @@ var Stats = Class.extend({
    * @returns Hiraya.Stat
    */
   get: function(name) {
-    return this[name] ? this[name] : this['none'];
+    return this[name] ? this[name] : this.none;
   }
 });
 

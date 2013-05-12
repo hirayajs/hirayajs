@@ -4,10 +4,14 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
 
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    jshint: {
+      all: ['src/**/*.js']
+    },
     yuidoc: {
       compile: {
         name: '<%= pkg.name %>',
@@ -55,6 +59,10 @@ module.exports = function(grunt) {
       docs: {
         files: ['src/**/*.js'],
         tasks: ['docs']
+      },
+      jshint: {
+        files: ['src/**/*.js'],
+        tasks: ['jshint']
       }
     },
 

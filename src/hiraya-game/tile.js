@@ -75,7 +75,7 @@ var Tile = Class.extend({
       x: this.x,
       y: this.y,
       z: this.z
-    }
+    };
   },
 
   /**

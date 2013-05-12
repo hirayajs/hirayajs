@@ -103,7 +103,7 @@ function extendClass(BaseClass, properties) {
           attribs[key] = attrib[key];
         }
       }
-    };
+    }
     return extendClass(Class, attribs);
   };
 

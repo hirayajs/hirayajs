@@ -98,7 +98,7 @@ var Collection = Emitter.extend({
       if (fn(this._list[i]) === false) {
         break;
       }
-    };
+    }
   }
 });
 
