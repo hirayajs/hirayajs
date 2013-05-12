@@ -3,12 +3,9 @@
   "version": "0.0.1",
   "description": "2D HTML5 Game Framework",
   "main": "bin/hiraya.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
-    "url": "http://github.com/jamesflorentino/hiraya"
+    "url": "http://github.com/hirayajs/hirayajs"
   },
   "keywords": [
     "html5",
