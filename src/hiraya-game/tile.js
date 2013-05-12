@@ -114,7 +114,7 @@ var Tile = Class.extend({
       entity.set('tile', null);
       this.entities.splice(this.entities.indexOf(entity), 1);
     }
-    return this
+    return this;
   },
 
   /**

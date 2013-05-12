@@ -68,7 +68,7 @@ module.exports = function(grunt) {
 
   });
   grunt.registerTask('server', 'connect:server');
-  grunt.registerTask('default', ['dev', 'uglify:build', 'yuidoc']);
+  grunt.registerTask('default', ['jshint', 'browserify:main', 'uglify:build', 'yuidoc']);
   grunt.registerTask('dev', 'browserify');
   grunt.registerTask('docs', 'yuidoc');
 };

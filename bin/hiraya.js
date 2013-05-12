@@ -23,7 +23,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-game/stat":4,"./hiraya-core/collection":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -542,199 +542,6 @@ module.exports = Emitter;
 },{"events":15,"./class":2}],4:[function(require,module,exports){
 /**
  * @module hiraya
- * @submodule hiraya-core
- */
-
-
-var Emitter = require('./emitter');
-
-
-/**
- * `Hiraya.Collection` handles list of objects that can be stored and retrieved.
- *
- * @class Collection
- * @extends Hiraya.Emitter
- * @namespace Hiraya
- */
-var Collection = Emitter.extend({
-  /**
-   * @property {Array} _list
-   * @private
-   */
-  _list: null,
-
-  /**
-   * Total elements in the collection. This gets updated whenever a new child is added or removed
-   *
-   *     var collection = Hiraya.Collection.create();
-   *     collection.length; // -> 0
-   *     collection.add({ name: 'James' });
-   *     collection.length; // -> 1
-   *
-   * @property length
-   * @type {Number}
-   * @default 0
-   */
-  length: null,
-
-  init: function() {
-    this._list = [];
-    this._updateLength();
-  },
-
-  /**
-   * Updates the `length` property.
-   *
-   * @method _updateLength
-   * @private
-   */
-  _updateLength: function() {
-    this.length = this._list.length;
-  },
-
-  /**
-   * Adds an element to the list
-   * @method add
-   * @param {Object} obj
-   * @chainable
-   */
-  add: function(obj) {
-    this._list.push(obj);
-    this._updateLength();
-    return this;
-  },
-
-  /**
-   * Removes an element from the list
-   *
-   * @method remove
-   * @param {Object} obj
-   * @chainable
-   */
-  remove: function(obj) {
-    this._list.splice(this._list.indexOf(obj), 1);
-    this._updateLength();
-    return this;
-  },
-
-  /**
-   * Returns an element from the array by its index value
-   *
-   * @method at
-   * @param {Number} index
-   * @returns Object
-   */
-  at: function(index) {
-    return this._list[index];
-  },
-
-
-  /**
-   * Iterates to each element in the collection. If the callback parameter returns false, it will halt the looping operation.
-   *
-   * @method each
-   * @param {Function} fn
-   */
-  each: function(fn) {
-    for (var i=0, length = this._list.length; i < length; i++) {
-      if (fn(this._list[i]) === false) {
-        break;
-      }
-    }
-  }
-});
-
-module.exports = Collection;
-
-},{"./emitter":3}],8:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
-
-
-var GetterSetter = require('../hiraya-core/getter-setter');
-var Stats = require('./stats');
-
-/**
- * A basic game entity that has basic API like stats, attack and damage commands.
- *
- * @class Entity
- * @extends Hiraya.GetterSetter
- * @namespace Hiraya
- */
-var Entity = GetterSetter.extend({
-  /**
-   * The id of the entity. Can be set uniquely or use the default Entity class ID
-   *
-   * @property id
-   * @type {Number}
-   */
-  id: null,
-  init: function() {
-    if (this.id === undefined) {
-      this.id = Entity.id++;
-    }
-    this.stats = Stats.create();
-    this.stats
-      .set('health', 100)
-      .set('attack', 100);
-    this.parent();
-  },
-
-  /**
-   * Attacks an enemy based on its attack stat value
-   *
-   * @method attack
-   * @param {Entity} enemyEntity
-   * @chainable
-   */
-  attack: function(enemyEntity) {
-    enemyEntity.damage(this.stats.attack.value);
-    return this;
-  },
-
-  /**
-   * Reduces health by 1
-   *
-   * @method damage
-   * @param {Number} damage
-   * @chainable
-   */
-  damage: function(damage) {
-    this.stats.health.reduce(damage);
-    return this;
-  },
-
-  /**
-   * Set the entity's attributes
-   *
-   * @method setStats
-   * @param {Object} attributes
-   */
-  setStats: function(attributes) {
-    for(var key in attributes) {
-      if (attributes.hasOwnProperty(key)) {
-        this[key] = Stat.create({ max: attributes[key] });
-      }
-    }
-  }
-});
-
-/**
- * An id counter for the Entity class
- *
- * @property id
- * @static
- * @type {Number}
- */
-Entity.id = 0;
-
-module.exports = Entity;
-
-},{"../hiraya-core/getter-setter":16,"./stats":6}],5:[function(require,module,exports){
-/**
- * @module hiraya
  * @submodule hiraya-game
  */
 
@@ -880,7 +687,114 @@ var Stat = Class.extend({
 
 module.exports = Stat;
 
-},{"../hiraya-core/class":2}],6:[function(require,module,exports){
+},{"../hiraya-core/class":2}],5:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-core
+ */
+
+
+var Emitter = require('./emitter');
+
+
+/**
+ * `Hiraya.Collection` handles list of objects that can be stored and retrieved.
+ *
+ * @class Collection
+ * @extends Hiraya.Emitter
+ * @namespace Hiraya
+ */
+var Collection = Emitter.extend({
+  /**
+   * @property {Array} _list
+   * @private
+   */
+  _list: null,
+
+  /**
+   * Total elements in the collection. This gets updated whenever a new child is added or removed
+   *
+   *     var collection = Hiraya.Collection.create();
+   *     collection.length; // -> 0
+   *     collection.add({ name: 'James' });
+   *     collection.length; // -> 1
+   *
+   * @property length
+   * @type {Number}
+   * @default 0
+   */
+  length: null,
+
+  init: function() {
+    this._list = [];
+    this._updateLength();
+  },
+
+  /**
+   * Updates the `length` property.
+   *
+   * @method _updateLength
+   * @private
+   */
+  _updateLength: function() {
+    this.length = this._list.length;
+  },
+
+  /**
+   * Adds an element to the list
+   * @method add
+   * @param {Object} obj
+   * @chainable
+   */
+  add: function(obj) {
+    this._list.push(obj);
+    this._updateLength();
+    return this;
+  },
+
+  /**
+   * Removes an element from the list
+   *
+   * @method remove
+   * @param {Object} obj
+   * @chainable
+   */
+  remove: function(obj) {
+    this._list.splice(this._list.indexOf(obj), 1);
+    this._updateLength();
+    return this;
+  },
+
+  /**
+   * Returns an element from the array by its index value
+   *
+   * @method at
+   * @param {Number} index
+   * @returns Object
+   */
+  at: function(index) {
+    return this._list[index];
+  },
+
+
+  /**
+   * Iterates to each element in the collection. If the callback parameter returns false, it will halt the looping operation.
+   *
+   * @method each
+   * @param {Function} fn
+   */
+  each: function(fn) {
+    for (var i=0, length = this._list.length; i < length; i++) {
+      if (fn(this._list[i]) === false) {
+        break;
+      }
+    }
+  }
+});
+
+module.exports = Collection;
+
+},{"./emitter":3}],6:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -963,7 +877,7 @@ var Stats = Class.extend({
 
 module.exports = Stats;
 
-},{"../hiraya-core/class":2,"./stat":5}],7:[function(require,module,exports){
+},{"../hiraya-core/class":2,"./stat":4}],7:[function(require,module,exports){
 var Entity = require('./entity');
 
 var EntityTurnBased = Entity.extend({
@@ -976,7 +890,93 @@ var EntityTurnBased = Entity.extend({
 
 module.exports = EntityTurnBased;
 
-},{"./entity":8}],9:[function(require,module,exports){
+},{"./entity":8}],8:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+var GetterSetter = require('../hiraya-core/getter-setter');
+var Stats = require('./stats');
+
+/**
+ * A basic game entity that has basic API like stats, attack and damage commands.
+ *
+ * @class Entity
+ * @extends Hiraya.GetterSetter
+ * @namespace Hiraya
+ */
+var Entity = GetterSetter.extend({
+  /**
+   * The id of the entity. Can be set uniquely or use the default Entity class ID
+   *
+   * @property id
+   * @type {Number}
+   */
+  id: null,
+  init: function() {
+    if (this.id === undefined) {
+      this.id = Entity.id++;
+    }
+    this.stats = Stats.create();
+    this.stats
+      .set('health', 100)
+      .set('attack', 100);
+    this.parent();
+  },
+
+  /**
+   * Attacks an enemy based on its attack stat value
+   *
+   * @method attack
+   * @param {Entity} enemyEntity
+   * @chainable
+   */
+  attack: function(enemyEntity) {
+    enemyEntity.damage(this.stats.attack.value);
+    return this;
+  },
+
+  /**
+   * Reduces health by 1
+   *
+   * @method damage
+   * @param {Number} damage
+   * @chainable
+   */
+  damage: function(damage) {
+    this.stats.health.reduce(damage);
+    return this;
+  },
+
+  /**
+   * Set the entity's attributes
+   *
+   * @method setStats
+   * @param {Object} attributes
+   */
+  setStats: function(attributes) {
+    for(var key in attributes) {
+      if (attributes.hasOwnProperty(key)) {
+        this[key] = Stat.create({ max: attributes[key] });
+      }
+    }
+  }
+});
+
+/**
+ * An id counter for the Entity class
+ *
+ * @property id
+ * @static
+ * @type {Number}
+ */
+Entity.id = 0;
+
+module.exports = Entity;
+
+},{"../hiraya-core/getter-setter":16,"./stats":6}],9:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1154,7 +1154,7 @@ var Tile = Class.extend({
       entity.set('tile', null);
       this.entities.splice(this.entities.indexOf(entity), 1);
     }
-    return this
+    return this;
   },
 
   /**
@@ -1326,7 +1326,7 @@ var Level = GetterSetter.extend({
 
 module.exports = Level;
 
-},{"../hiraya-core/getter-setter":16,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":16,"../hiraya-core/collection":5,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
