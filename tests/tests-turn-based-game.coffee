@@ -59,6 +59,7 @@ describe 'Turn-based game test suite', ->
           @tiles.get(0,0).occupy(@entities.at(0))
           expect(@entities.at(0).get('tile')).to.be(@tiles.get(0,0))
       Game.start()
+  describe 'Attacking entities', ->
     it 'should be able to target other entities', ->
       Game = Hiraya.Game.create()
       Game.Level = Hiraya.LevelTurnBased.extend

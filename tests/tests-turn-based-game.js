@@ -61,8 +61,8 @@
         return Game.start();
       });
     });
-    return describe('Moving entities', function() {
-      it('should be able to move entities to a different tile', function() {
+    describe('Moving entities', function() {
+      return it('should be able to move entities to a different tile', function() {
         var Game;
         Game = Hiraya.Game.create();
         Game.Level = Hiraya.LevelTurnBased.extend({
@@ -91,6 +91,8 @@
         });
         return Game.start();
       });
+    });
+    return describe('Attacking entities', function() {
       return it('should be able to target other entities', function() {
         var Game;
         Game = Hiraya.Game.create();

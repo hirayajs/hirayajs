@@ -23,7 +23,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-game/stat":4,"./hiraya-core/collection":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -542,6 +542,113 @@ module.exports = Emitter;
 },{"events":15,"./class":2}],4:[function(require,module,exports){
 /**
  * @module hiraya
+ * @submodule hiraya-core
+ */
+
+
+var Emitter = require('./emitter');
+
+
+/**
+ * `Hiraya.Collection` handles list of objects that can be stored and retrieved.
+ *
+ * @class Collection
+ * @extends Hiraya.Emitter
+ * @namespace Hiraya
+ */
+var Collection = Emitter.extend({
+  /**
+   * @property {Array} _list
+   * @private
+   */
+  _list: null,
+
+  /**
+   * Total elements in the collection. This gets updated whenever a new child is added or removed
+   *
+   *     var collection = Hiraya.Collection.create();
+   *     collection.length; // -> 0
+   *     collection.add({ name: 'James' });
+   *     collection.length; // -> 1
+   *
+   * @property length
+   * @type {Number}
+   * @default 0
+   */
+  length: null,
+
+  init: function() {
+    this._list = [];
+    this._updateLength();
+  },
+
+  /**
+   * Updates the `length` property.
+   *
+   * @method _updateLength
+   * @private
+   */
+  _updateLength: function() {
+    this.length = this._list.length;
+  },
+
+  /**
+   * Adds an element to the list
+   * @method add
+   * @param {Object} obj
+   * @chainable
+   */
+  add: function(obj) {
+    this._list.push(obj);
+    this._updateLength();
+    return this;
+  },
+
+  /**
+   * Removes an element from the list
+   *
+   * @method remove
+   * @param {Object} obj
+   * @chainable
+   */
+  remove: function(obj) {
+    this._list.splice(this._list.indexOf(obj), 1);
+    this._updateLength();
+    return this;
+  },
+
+  /**
+   * Returns an element from the array by its index value
+   *
+   * @method at
+   * @param {Number} index
+   * @returns Object
+   */
+  at: function(index) {
+    return this._list[index];
+  },
+
+
+  /**
+   * Iterates to each element in the collection. If the callback parameter returns false, it will halt the looping operation.
+   *
+   * @method each
+   * @param {Function} fn
+   */
+  each: function(fn) {
+    for (var i=0, length = this._list.length; i < length; i++) {
+      if (fn(this._list[i]) === false) {
+        break;
+      }
+    }
+  }
+});
+
+module.exports = Collection;
+
+},{"./emitter":3}],5:[function(require,module,exports){
+/**
+ * @module hiraya
  * @submodule hiraya-game
  */
 
@@ -687,114 +794,7 @@ var Stat = Class.extend({
 
 module.exports = Stat;
 
-},{"../hiraya-core/class":2}],5:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-core
- */
-
-
-var Emitter = require('./emitter');
-
-
-/**
- * `Hiraya.Collection` handles list of objects that can be stored and retrieved.
- *
- * @class Collection
- * @extends Hiraya.Emitter
- * @namespace Hiraya
- */
-var Collection = Emitter.extend({
-  /**
-   * @property {Array} _list
-   * @private
-   */
-  _list: null,
-
-  /**
-   * Total elements in the collection. This gets updated whenever a new child is added or removed
-   *
-   *     var collection = Hiraya.Collection.create();
-   *     collection.length; // -> 0
-   *     collection.add({ name: 'James' });
-   *     collection.length; // -> 1
-   *
-   * @property length
-   * @type {Number}
-   * @default 0
-   */
-  length: null,
-
-  init: function() {
-    this._list = [];
-    this._updateLength();
-  },
-
-  /**
-   * Updates the `length` property.
-   *
-   * @method _updateLength
-   * @private
-   */
-  _updateLength: function() {
-    this.length = this._list.length;
-  },
-
-  /**
-   * Adds an element to the list
-   * @method add
-   * @param {Object} obj
-   * @chainable
-   */
-  add: function(obj) {
-    this._list.push(obj);
-    this._updateLength();
-    return this;
-  },
-
-  /**
-   * Removes an element from the list
-   *
-   * @method remove
-   * @param {Object} obj
-   * @chainable
-   */
-  remove: function(obj) {
-    this._list.splice(this._list.indexOf(obj), 1);
-    this._updateLength();
-    return this;
-  },
-
-  /**
-   * Returns an element from the array by its index value
-   *
-   * @method at
-   * @param {Number} index
-   * @returns Object
-   */
-  at: function(index) {
-    return this._list[index];
-  },
-
-
-  /**
-   * Iterates to each element in the collection. If the callback parameter returns false, it will halt the looping operation.
-   *
-   * @method each
-   * @param {Function} fn
-   */
-  each: function(fn) {
-    for (var i=0, length = this._list.length; i < length; i++) {
-      if (fn(this._list[i]) === false) {
-        break;
-      }
-    }
-  }
-});
-
-module.exports = Collection;
-
-},{"./emitter":3}],6:[function(require,module,exports){
+},{"../hiraya-core/class":2}],6:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -877,7 +877,7 @@ var Stats = Class.extend({
 
 module.exports = Stats;
 
-},{"../hiraya-core/class":2,"./stat":4}],7:[function(require,module,exports){
+},{"../hiraya-core/class":2,"./stat":5}],7:[function(require,module,exports){
 var Entity = require('./entity');
 
 var EntityTurnBased = Entity.extend({
@@ -1179,15 +1179,68 @@ module.exports = Tile;
 var Class = require('../hiraya-core/class');
 var Tile = require('./tile');
 
+/**
+ * `Hiraya.Tiles` manages `Hiraya.Tile` instances which includes selecting neighbors and path-finding.
+ *
+ * @class Tiles
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
 var Tiles = Class.extend({
+  /**
+   * Total number of columns of the board.
+   *
+   * @property columns
+   * @type {Number}
+   * @default 8
+   */
   columns: 8,
+
+  /**
+   * Total number of rows of the board.
+   *
+   * @property rows
+   * @type {Number}
+   * @default 8
+   */
   rows: 8,
+
+  /**
+   * The matrix for the list of array for easy reference. Internal use only.
+   *
+   * @property _matrix
+   * @type {Array}
+   * @private
+   */
   _matrix: null,
+
+  /**
+   * The total number of tiles.
+   *
+   * @property _total
+   * @type {Number}
+   * @private
+   */
   _total: null,
+
+  /**
+   * The default Tile class to be instantiated when the board generates tiles.
+   *
+   * @property Tile
+   * @type {Hiraya.Tile}
+   * @default Hiraya.Tile
+   */
   Tile: Tile,
   init: function() {
     this._generate();
   },
+
+  /**
+   * Generates the board with tiles
+   *
+   * @method _generate
+   * @private
+   */
   _generate: function() {
     this._matrix = [];
     this._total = 0;
@@ -1204,8 +1257,60 @@ var Tiles = Class.extend({
     }
   },
 
+  /**
+   * Retrieves a tile based on its x and y coordinates
+   *
+   * @method get
+   * @param {Number} x
+   * @param {Number} y
+   * @returns {Tile}
+   */
   get: function(x, y) {
-    return this._matrix[y][x];
+    var t;
+    if ((t = this._matrix[y])) {
+      if ((t = t[x])) {
+        return t;
+      }
+    }
+    return t;
+  },
+
+  /**
+   * Retrieves the adjacent tiles of a tile.
+   *
+   * @method adjacent
+   * @param {Hiraya.Tile} tile
+   * @returns {Array}
+   */
+  adjacent: function(tile) {
+    var t, adjacent;
+    adjacent = [];
+    if ((t = this.get(tile.x - 1, tile.y - 1))) { /** NW **/
+      adjacent.push(t);
+    }
+    if ((t = this.get(tile.x, tile.y - 1))) { /** N **/
+      adjacent.push(t);
+    }
+    if ((t = this.get(tile.x + 1, tile.y - 1))) { /** NE **/
+      adjacent.push(t);
+    }
+    if ((t = this.get(tile.x - 1, tile.y))) { /** E **/
+      adjacent.push(t);
+    }
+    if ((t = this.get(tile.x + 1, tile.y))) { /** W **/
+      adjacent.push(t);
+    }
+    if ((t = this.get(tile.x - 1, tile.y + 1))) { /** SW **/
+      adjacent.push(t);
+    }
+    if ((t = this.get(tile.x, tile.y + 1))) { /** S **/
+      adjacent.push(t);
+    }
+    if ((t = this.get(tile.x + 1, tile.y + 1))) { /** SE **/
+      adjacent.push(t);
+    }
+    console.log('test', adjacent);
+    return adjacent;
   }
 });
 
@@ -1326,7 +1431,7 @@ var Level = GetterSetter.extend({
 
 module.exports = Level;
 
-},{"../hiraya-core/getter-setter":16,"../hiraya-core/collection":5,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":16,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
