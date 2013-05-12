@@ -46,8 +46,8 @@ var Stats = Class.extend({
     var stat = this[name];
     var maxValue = typeof max === 'number' ? max : value;
     if (stat) {
-      stat.setValue(value);
       stat.setMax(maxValue);
+      stat.setValue(value);
     } else {
       this[name] = Stat.create({
         name: name,

@@ -37,11 +37,11 @@ var Entity = GetterSetter.extend({
    * Attacks an enemy based on its attack stat value
    *
    * @method attack
-   * @param {Entity} enemy
+   * @param {Entity} enemyEntity
    * @chainable
    */
-  attack: function(enemy) {
-    enemy.damage(this.stats.attack.value);
+  attack: function(enemyEntity) {
+    enemyEntity.damage(this.stats.attack.value);
     return this;
   },
 

@@ -21,16 +21,7 @@ var EntityTurnBased = require('./entity-turnbased');
  * @namespace Hiraya
  */
 var LevelTurnBased = Level.extend({
-  /**
-   * Creates a `Hiraya.EntityTurnBased` class. This overrides the original method in the `Hiraya.Level` class.
-   *
-   * @method createEntity
-   * @param {Object} attributes
-   * @returns Hiraya.EntityTurnBased
-   */
-  createEntity: function(attributes) {
-    return EntityTurnBased.create(attributes);
-  },
+  Entity: EntityTurnBased,
 
   /**
    * Determines how fast the tick for the turn calculation will be. Internal use only.

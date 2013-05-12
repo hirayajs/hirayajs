@@ -135,6 +135,26 @@
         });
       });
     });
+    describe('Hiraya.Tiles', function() {
+      describe('#rows, #columns', function() {
+        return it('should have a default rows and columns value', function() {
+          var tiles;
+          tiles = Hiraya.Tiles.create();
+          expect(tiles.columns).to.be.ok();
+          return expect(tiles.rows).to.be.ok();
+        });
+      });
+      return describe('#get(x,y)', function() {
+        return it('should be able to retrieve a tile by its x and y axis', function() {
+          var tiles;
+          tiles = Hiraya.Tiles.create({
+            x: 1,
+            y: 1
+          });
+          return expect(tiles.get(2, 1)).to.be.ok();
+        });
+      });
+    });
     describe('Hiraya.Level', function() {
       var level;
       level = Hiraya.Level.create();
@@ -170,7 +190,8 @@
               turnspeed: [20]
             }
           });
-          return expect(level.entities.at(0).stats.turn.value).to.be(100);
+          expect(level.entities.at(0).stats.turn.value).to.be(100);
+          return expect(level.entities.at(1).stats.turnspeed.value).to.be(20);
         });
       });
       describe('#getTurn(fn)', function() {

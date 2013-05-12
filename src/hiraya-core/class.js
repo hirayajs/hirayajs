@@ -19,6 +19,14 @@ function protoParent(prototype, name, method) {
   };
 }
 
+function isClassObject(fn) {
+  var truth = false;
+  for (var key in fn.prototype) {
+    truth = true;
+  }
+  return truth;
+}
+
 /**
  * Extends an object's properties and assign them as prototypes in a Function
  */
@@ -32,7 +40,11 @@ function extendClass(BaseClass, properties) {
   for(var name in properties) {
     if (properties.hasOwnProperty(name)) {
       attribute = properties[name];
-      prototype[name] = typeof parent[name] === 'function' && typeof properties[name] === 'function' ?
+      prototype[name] = typeof parent[name] === 'function' &&
+        typeof attribute === 'function' &&
+        // check if it's a Class by checking its list of prototype properties
+        // no super should be assigned if ever.
+        !isClassObject(attribute) ? // make sure we're assigning a proto parent only for functions
         protoParent(parent, name, attribute) :
         attribute;
     }
@@ -129,8 +141,13 @@ function extendClass(BaseClass, properties) {
    * @return Class
    */
   Class.create = function(attributes) {
-    var ClassExtend = Class.extend(attributes);
-    return new ClassExtend();
+    var ClassExtend;
+    if (typeof attributes === 'object') {
+      ClassExtend = Class.extend(attributes);
+      return new ClassExtend();
+    } else {
+      return new Class();
+    }
   };
   return Class;
 }

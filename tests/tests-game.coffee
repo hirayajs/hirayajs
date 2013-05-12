@@ -83,6 +83,18 @@ describe 'hiraya-game', ->
       it 'should know if it has occupants in it', ->
         tile.occupy entity
         expect(tile.isOccupied()).to.be.ok()
+  describe 'Hiraya.Tiles', ->
+    describe '#rows, #columns', ->
+      it 'should have a default rows and columns value', ->
+        tiles = Hiraya.Tiles.create()
+        expect(tiles.columns).to.be.ok()
+        expect(tiles.rows).to.be.ok()
+    describe '#get(x,y)', ->
+      it 'should be able to retrieve a tile by its x and y axis', ->
+        tiles = Hiraya.Tiles.create
+          x: 1
+          y: 1
+        expect(tiles.get(2 ,1)).to.be.ok()
   describe 'Hiraya.Level', ->
     level = Hiraya.Level.create()
     describe '#entities', ->
@@ -105,6 +117,7 @@ describe 'hiraya-game', ->
           stats:
             turnspeed: [20]
         expect(level.entities.at(0).stats.turn.value).to.be(100)
+        expect(level.entities.at(1).stats.turnspeed.value).to.be(20)
     describe '#getTurn(fn)', ->
       it 'should be able to calculate turns and reset the turn stat of the active entity to 0', (done) ->
         level.gotTurn = (entityTurnBased) ->

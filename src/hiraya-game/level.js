@@ -4,9 +4,10 @@
  */
 
 
-var Emitter = require('../hiraya-core/emitter');
+var GetterSetter = require('../hiraya-core/getter-setter');
 var Collection = require('../hiraya-core/collection');
 var Entity = require('./entity');
+var Tiles = require('./tiles');
 
 /**
  * `Hiraya.Level` manages the game logic and entity interaction.
@@ -16,19 +17,33 @@ var Entity = require('./entity');
  * - `addedEntity`
  *
  * @class Level
- * @extends Hiraya.Class
+ * @extends Hiraya.GetterSetter
  * @namespace Hiraya
  */
-var Level = Emitter.extend({
+var Level = GetterSetter.extend({
   /**
    * @property entities
-   * @type {Array}
+   * @type {Hiraya.Collection}
    */
   entities: null,
 
+  Entity: Entity,
+
+  Tiles: Tiles,
+
   init: function() {
+    this.tiles = this.Tiles.create();
     this.entities = Collection.create();
     this.parent();
+    this.ready();
+  },
+
+  /**
+   * Emitted after initialization
+   *
+   * @event ready
+   */
+  ready: function() {
   },
 
   /**
@@ -50,12 +65,22 @@ var Level = Emitter.extend({
    */
   addEntity: function(attributes) {
     // attributes.stats gets overwritten in library
-    var entity = this.createEntity(attributes);
-    var stats = attributes.stats;
-    for (var key in stats) {
-      if (stats.hasOwnProperty(key)) {
-        var stat = stats[key];
-        entity.stats.set(key, stat[0], stat[1]);
+    var entity, stats, tile;
+    entity = this.createEntity(attributes);
+    stats = attributes.stats;
+    if (typeof stats === 'object') {
+      for (var key in stats) {
+        if (stats.hasOwnProperty(key)) {
+          var stat = stats[key];
+          entity.stats.set(key, stat[0], stat[1]);
+        }
+      }
+    }
+
+    if (typeof attributes.tile === 'object') {
+      tile = this.tiles.get(attributes.tile.x, attributes.tile.y);
+      if (tile) {
+        tile.occupy(entity);
       }
     }
     this.entities.add(entity);
@@ -71,7 +96,7 @@ var Level = Emitter.extend({
    * @returns Hiraya.Entity
    */
   createEntity: function(attributes) {
-    return Entity.create(attributes);
+    return this.Entity.create(attributes);
   },
 
   /**

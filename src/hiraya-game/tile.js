@@ -87,6 +87,7 @@ var Tile = Class.extend({
   occupy: function(entity) {
     if (!this.has(entity)) {
       this.entities.push(entity);
+      entity.set('tile', this);
     }
   },
 
@@ -106,9 +107,14 @@ var Tile = Class.extend({
    *
    * @method vacate
    * @param {Entity} entity
+   * @chainable
    */
   vacate: function(entity) {
-    this.entities.splice(this.entities.indexOf(entity), 1);
+    if (this.has(entity)) {
+      entity.set('tile', null);
+      this.entities.splice(this.entities.indexOf(entity), 1);
+    }
+    return this
   },
 
   /**
