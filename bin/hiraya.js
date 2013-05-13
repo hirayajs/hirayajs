@@ -634,7 +634,6 @@ var Collection = Emitter.extend({
         var item = this._list[i];
         if (fn(item)) {
           return item;
-          break;
         }
       }
     }
@@ -652,6 +651,17 @@ var Collection = Emitter.extend({
         break;
       }
     }
+  },
+
+  /**
+   * Returns a clone of the collection which can be used for other purposes outside the normal
+   * collection operation.
+   *
+   * @method list
+   * @returns {Array}
+   */
+  list: function() {
+    return this._list.slice();
   }
 });
 
@@ -857,11 +867,11 @@ var Stats = Class.extend({
       stat.setMax(maxValue);
       stat.setValue(value);
     } else {
-      this[name] = Stat.create({
-        name: name,
-        value: value,
-        max: maxValue
-      });
+      stat = Stat.create();
+      stat.name = name;
+      stat.setMax(maxValue);
+      stat.setValue(value);
+      this[name] = stat;
     }
     return this;
   },
@@ -895,6 +905,8 @@ var EntityTurnBased = Entity.extend({
   init: function() {
     this.parent();
     this.stats.set('turn', 0, 100);
+    this.stats.set('steps', 1);
+    this.stats.set('range', 2);
     this.stats.set('turnspeed', 10);
   }
 });
@@ -1389,7 +1401,8 @@ var Tiles = Class.extend({
    * @returns {Boolean}
    */
   _movementCost: function(start, end) {
-    return end.entities.length || end.wall ? 10000 : end.val();
+    //return end.entities.length || end.wall ? 10000 : end.val();
+    return end.wall ? 10000 : end.val();
   },
 
   /**
@@ -1398,14 +1411,15 @@ var Tiles = Class.extend({
    * @method range
    * @param {Hiraya.Tile} tile
    * @param {Number} [radius=1]
+   * @param {Boolean} [ignoreCost=false]
    * @returns {Array}
    */
-  range: function(tile, radius) {
+  range: function(tile, radius, ignoreCost) {
     var open = [tile];
     var closed = [];
     var currTile;
     var adjacent;
-    var neighbor, newCost, i, _len;
+    var neighbor, newCost, i, _len, tileCost;
 
     if (radius === undefined) {
       radius = 1;
@@ -1419,7 +1433,8 @@ var Tiles = Class.extend({
         _len = adjacent.length;
         for(i = 0; i < _len; i++) {
           neighbor = adjacent[i];
-          newCost = currTile.cost + this._movementCost(currTile, neighbor);
+          tileCost = ignoreCost ? 1 : this._movementCost(currTile, neighbor);
+          newCost = currTile.cost + tileCost;
           if (neighbor.blocked(currTile) || currTile.blocked(neighbor)) {
             continue;
           }
@@ -1458,8 +1473,8 @@ var Tiles = Class.extend({
     var openList,
     closedList,
     currentNode,
-    adjacents,
-    adjacent,
+    neighbors,
+    neighbor,
     scoreG,
     scoreGBest,
     i,
@@ -1491,32 +1506,32 @@ var Tiles = Class.extend({
       // case DEFAULT: Move current node to the closed list.
       openList.splice(currentNode, 1);
       closedList.push(currentNode);
-      // Find the best score in the adjacenting tile of the hex.
-      adjacents = this.adjacent(currentNode);
-      for(i=0, _len = adjacents.length; i < _len; i++) {
-        adjacent = adjacents[i];
-        if (closedList.indexOf(adjacent) > -1 || 
-            adjacent.wall ||
-              adjacent.isOccupied() ||
-                currentNode.blocked(adjacent) ||
-                  adjacent.blocked(currentNode)
+      // Find the best score in the neighboring tile of the hex.
+      neighbors = this.adjacent(currentNode);
+      for(i=0, _len = neighbors.length; i < _len; i++) {
+        neighbor = neighbors[i];
+        if (closedList.indexOf(neighbor) > -1 ||
+            neighbor.wall ||
+            //neighbor.isOccupied() ||
+            currentNode.blocked(neighbor) ||
+            neighbor.blocked(currentNode)
            ) {
-             continue;
+              continue;
            }
            scoreG = currentNode.g + 1;
            scoreGBest = false;
            // if it's the first time to touch this tile.
-           if(openList.indexOf(adjacent) === -1) {
+           if(openList.indexOf(neighbor) === -1) {
              scoreGBest = true;
-             adjacent.h = this.heuristic(adjacent, end);
-             openList.push(adjacent);
-           } else if (scoreG < adjacent.g) {
+             neighbor.h = this.heuristic(neighbor, end);
+             openList.push(neighbor);
+           } else if (scoreG < neighbor.g) {
              scoreGBest = true;
            }
            if (scoreGBest) {
-             adjacent.parent = currentNode;
-             adjacent.g = scoreG;
-             adjacent.f = adjacent.g + adjacent.h;
+             neighbor.parent = currentNode;
+             neighbor.g = scoreG;
+             neighbor.f = neighbor.g + neighbor.h;
            }
       }
     }
@@ -1543,7 +1558,7 @@ var Tiles = Class.extend({
   }
 });
 
-  module.exports = Tiles;
+module.exports = Tiles;
 
 },{"../hiraya-core/class":2,"./tile":10}],12:[function(require,module,exports){
 /**
@@ -1631,6 +1646,7 @@ var Level = GetterSetter.extend({
         tile.occupy(entity);
       }
     }
+
     this.entities.add(entity);
     this.addedEntity(entity);
     return this;
@@ -1676,8 +1692,9 @@ var EntityTurnBased = require('./entity-turnbased');
  *
  * ### Events
  *
+ * - `getTurnTimedOut`
  * - `gotTurn`
- * - `addedEntity`
+ * - `hasNoWinnerYet`
  * - `hasWinner`
  *
  * @class LevelTurnBased
@@ -1697,13 +1714,15 @@ var LevelTurnBased = Level.extend({
   tickSpeed: 1,
 
   /**
-   * A timeout identifier for the tick operation.
+   * Determines the number of tries the `.getTurn()` function can do before
+   * giving up.
    *
-   * @property _turnTimeout
-   * @private
+   * @property _maxGetTurnAttempts
    * @type {Number}
+   * @private
+   * @default 25
    */
-  _turnTimeout: null,
+  _maxGetTurnAttempts: 25,
 
   /**
    * Finds the next entity to take its turn.
@@ -1712,25 +1731,23 @@ var LevelTurnBased = Level.extend({
    */
   getTurn: function() {
     var entity, _this = this;
+    var tries = 0;
+    var maxTries = this._maxGetTurnAttempts;
     var tick = function() {
       entity = _this._getEntityTurn();
+      tries++;
       if (!entity) {
-        setTimeout(tick, _this.tickSpeed);
+        if (tries < maxTries) {
+          setTimeout(tick, _this.tickSpeed);
+        } else {
+          _this.getTurnTimedOut();
+        }
       } else {
         entity.stats.turn.empty();
         _this.gotTurn(entity);
       }
     };
     tick();
-  },
-
-  /**
-   * Invoked when an entity is taking its turn
-   *
-   * @event gotTurn
-   * @param {Hiraya.EntityTurnBased} entityTurnBased
-   */
-  gotTurn: function(entityTurnBased) {
   },
 
   /**
@@ -1746,7 +1763,7 @@ var LevelTurnBased = Level.extend({
     var result;
     for(var i=0; i<total; i++) {
       entity = this.entities.at(i);
-      entity.stats.turn.add(entity.stats.get('turnspeed').value);
+      entity.stats.turn.add(entity.stats.turnspeed.value);
       if (entity.stats.turn.isMax()) {
         result = entity;
         break;
@@ -1779,20 +1796,74 @@ var LevelTurnBased = Level.extend({
   },
 
   /**
-   * Fires when a winner has been announced
+   * Finds the nearest entities based on closed proximity.
+   *
+   * @method promixity
+   * @param {Hiraya.EntityTurnBased} entity
+   * @param {String} [by=null]
+   * @returns {Array}
+   */
+  proximity: function(entity, by) {
+    var distances = [],
+      entities = [],
+      tiles,
+      radius = Math.floor(this.tiles.columns * 0.5)
+    ;
+    if (by === 'range') {
+      radius = entity.stats.range.value;
+    }
+    tiles = this.tiles.range(entity.tile, radius, true);
+    for(var i=0,len=tiles.length; i<len; i++) {
+      var tile = tiles[i];
+      var occupant = tile.entities[0];
+      if (occupant && occupant !== entity) {
+        var distance = Math.abs(occupant.tile.x - entity.tile.x + occupant.tile.y - entity.tile.y);
+        var index = 0;
+        for(var ii=0, llen=distances.length; ii<llen; ii++) {
+          if (distance < distances[ii]) {
+            index = ii;
+            break;
+          }
+        }
+        distances.splice(index, 0, distance);
+        entities.splice(index, 0, occupant);
+      }
+    }
+    return entities;
+  },
+
+  /**
+   * Fired when an entity reaches its max `.stats.turnspeed` value.
+   *
+   * @event gotTurn
+   * @param {Hiraya.EntityTurnBased} entity
+   */
+  gotTurn: function(entity) {
+  },
+
+  /**
+   * Fired when a winner has been announced after performing a `.evaluateEntities()` function.
    *
    * @event hasWinner
-   * @param {entity} Hiraya.EntityTurnBased
+   * @param {Hiraya.EntityTurnBased} entity
    */
   hasWinner: function(entity) {
   },
 
   /**
-   * Fires when there is no winner yet after performing a `.evaluateEntities()` command
+   * Fired when there is no winner yet after performing a `.evaluateEntities()` function.
    *
    * @event hasNoWinnerYet
    */
   hasNoWinnerYet: function() {
+  },
+
+  /**
+   * Fired when attempts in finding an entity to take its turn has reached its maximum number of tries.
+   *
+   * @event getTurnTimedOut
+   */
+  getTurnTimedOut: function() {
   }
 });
 

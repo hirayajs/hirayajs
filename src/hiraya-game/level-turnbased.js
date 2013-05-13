@@ -12,8 +12,9 @@ var EntityTurnBased = require('./entity-turnbased');
  *
  * ### Events
  *
+ * - `getTurnTimedOut`
  * - `gotTurn`
- * - `addedEntity`
+ * - `hasNoWinnerYet`
  * - `hasWinner`
  *
  * @class LevelTurnBased
@@ -33,13 +34,15 @@ var LevelTurnBased = Level.extend({
   tickSpeed: 1,
 
   /**
-   * A timeout identifier for the tick operation.
+   * Determines the number of tries the `.getTurn()` function can do before
+   * giving up.
    *
-   * @property _turnTimeout
-   * @private
+   * @property _maxGetTurnAttempts
    * @type {Number}
+   * @private
+   * @default 25
    */
-  _turnTimeout: null,
+  _maxGetTurnAttempts: 25,
 
   /**
    * Finds the next entity to take its turn.
@@ -48,25 +51,23 @@ var LevelTurnBased = Level.extend({
    */
   getTurn: function() {
     var entity, _this = this;
+    var tries = 0;
+    var maxTries = this._maxGetTurnAttempts;
     var tick = function() {
       entity = _this._getEntityTurn();
+      tries++;
       if (!entity) {
-        setTimeout(tick, _this.tickSpeed);
+        if (tries < maxTries) {
+          setTimeout(tick, _this.tickSpeed);
+        } else {
+          _this.getTurnTimedOut();
+        }
       } else {
         entity.stats.turn.empty();
         _this.gotTurn(entity);
       }
     };
     tick();
-  },
-
-  /**
-   * Invoked when an entity is taking its turn
-   *
-   * @event gotTurn
-   * @param {Hiraya.EntityTurnBased} entityTurnBased
-   */
-  gotTurn: function(entityTurnBased) {
   },
 
   /**
@@ -82,7 +83,7 @@ var LevelTurnBased = Level.extend({
     var result;
     for(var i=0; i<total; i++) {
       entity = this.entities.at(i);
-      entity.stats.turn.add(entity.stats.get('turnspeed').value);
+      entity.stats.turn.add(entity.stats.turnspeed.value);
       if (entity.stats.turn.isMax()) {
         result = entity;
         break;
@@ -115,20 +116,74 @@ var LevelTurnBased = Level.extend({
   },
 
   /**
-   * Fires when a winner has been announced
+   * Finds the nearest entities based on closed proximity.
+   *
+   * @method promixity
+   * @param {Hiraya.EntityTurnBased} entity
+   * @param {String} [by=null]
+   * @returns {Array}
+   */
+  proximity: function(entity, by) {
+    var distances = [],
+      entities = [],
+      tiles,
+      radius = Math.floor(this.tiles.columns * 0.5)
+    ;
+    if (by === 'range') {
+      radius = entity.stats.range.value;
+    }
+    tiles = this.tiles.range(entity.tile, radius, true);
+    for(var i=0,len=tiles.length; i<len; i++) {
+      var tile = tiles[i];
+      var occupant = tile.entities[0];
+      if (occupant && occupant !== entity) {
+        var distance = Math.abs(occupant.tile.x - entity.tile.x + occupant.tile.y - entity.tile.y);
+        var index = 0;
+        for(var ii=0, llen=distances.length; ii<llen; ii++) {
+          if (distance < distances[ii]) {
+            index = ii;
+            break;
+          }
+        }
+        distances.splice(index, 0, distance);
+        entities.splice(index, 0, occupant);
+      }
+    }
+    return entities;
+  },
+
+  /**
+   * Fired when an entity reaches its max `.stats.turnspeed` value.
+   *
+   * @event gotTurn
+   * @param {Hiraya.EntityTurnBased} entity
+   */
+  gotTurn: function(entity) {
+  },
+
+  /**
+   * Fired when a winner has been announced after performing a `.evaluateEntities()` function.
    *
    * @event hasWinner
-   * @param {entity} Hiraya.EntityTurnBased
+   * @param {Hiraya.EntityTurnBased} entity
    */
   hasWinner: function(entity) {
   },
 
   /**
-   * Fires when there is no winner yet after performing a `.evaluateEntities()` command
+   * Fired when there is no winner yet after performing a `.evaluateEntities()` function.
    *
    * @event hasNoWinnerYet
    */
   hasNoWinnerYet: function() {
+  },
+
+  /**
+   * Fired when attempts in finding an entity to take its turn has reached its maximum number of tries.
+   *
+   * @event getTurnTimedOut
+   */
+  getTurnTimedOut: function() {
   }
 });
 

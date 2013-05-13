@@ -5,7 +5,7 @@ else
   Hiraya = @Hiraya
   expect = @expect
 
-describe 'Turn-based game test suite', ->
+describe.skip 'Turn-based game test suite', ->
   describe 'A Base Game', ->
     Game = Hiraya.Game.create()
     it 'should create a Game namespace', ->
@@ -72,15 +72,17 @@ describe 'Turn-based game test suite', ->
           expect(enemy.stats.health.isEmpty()).to.be(true)
       Game.start()
   describe 'Turn based entities', ->
-    it 'should have a turn and turnspeed stat attribute by DEFAULT', ->
+    it 'should have a steps, range, turn and turnspeed stat attribute by DEFAULT', ->
       Game = Hiraya.Game.create()
       Game.Level = Hiraya.LevelTurnBased.extend
         ready: ->
           @addEntity
             tile: x: 0, y: 0
           entity = @entities.at 0
-          expect(entity.stats.turn.value).to.be.ok()
-          expect(entity.stats.turnspeed.value).to.be.ok()
+          expect(entity.stats.steps).to.be.ok()
+          expect(entity.stats.range).to.be.ok()
+          expect(entity.stats.turn).to.be.ok()
+          expect(entity.stats.turnspeed).to.be.ok()
       Game.start()
   describe 'A simple round', ->
     it 'should have two entities to start', (done) ->
@@ -119,45 +121,69 @@ describe 'Turn-based game test suite', ->
         gotTurn: ->
           done()
       Game.start()
-    it 'should announce the winner once there is only one left', (done) ->
-      Game = Hiraya.Game.create()
-      Game.Level = Hiraya.LevelTurnBased.extend
-        minEntities: 2
-        _tickSpeed: 0,
-        ready: ->
-          @addEntity
-            name: 'marine'
-            auto: true
-            stats: health: [10], attack: [0], turnspeed: [0]
-            tile: x: 0, y: 0
-          @addEntity
-            name: 'vanguard'
-            auto: true
-            stats: health: [10], attack: [1]
-            tile: x: 1, y: 0
-        addedEntity: ->
-          if @entities.length >= @minEntities
-            do @started
-        started: ->
-          do @getTurn
-        gotTurn: (entity) ->
-          if (entity.auto)
-            @autoTurn entity
-        autoTurn: (entity) ->
-          range = @tiles.range entity.tile
-          tiles = range.filter (tile) -> tile.isOccupied()
-          targets = []
+describe.only 'An automated game test', ->
+  it 'should announce the winner once there is only one left', (done) ->
+    Game = Hiraya.Game.create()
+    Game.Level = Hiraya.LevelTurnBased.extend
+      minEntities: 3
+      _tickSpeed: 0,
+      ready: ->
+        @addEntity
+          name: 'marine'
+          auto: true
+          stats: health: [10], attack: [0], turnspeed: [0]
+          tile: x: 0, y: 0
+        @addEntity
+          name: 'marine-2'
+          auto: true
+          stats: health: [10], attack: [0], turnspeed: [0]
+          tile: x: 4, y: 3
+        @addEntity
+          name: 'vanguard'
+          auto: true
+          stats: health: [10], attack: [1], range: [5]
+          tile: x: 3, y: 3
+      addedEntity: (entity) ->
+        if @entities.length is @minEntities
+          do @started
+      _findNearestEnemy: (entity, tiles) ->
+          distances = []
+          entities = []
           tiles.forEach (tile) ->
-            tile.entities.forEach (entity) ->
-              targets.push entity
-          ## TODO: add API for findNearestEnemy method
-          targets.forEach (target) ->
-            entity.attack target
-            console.log entity.name, 'attacked ', target.name, ': ->', target.stats.health.value
-          do @evaluateEntities
-        hasWinner: (entity) ->
-          console.log 'winner is:', entity
-          done()
-        hasNoWinnerYet: ->
-          do @getTurn
-      Game.start()
+            if tile.isOccupied()
+              e = tile.entities[0]
+              if e isnt entity
+                distance = Math.abs((tile.x - entity.tile.x) + (tile.y - entity.tile.y))
+                index = 0
+                for d, i in distances
+                  if distance < d
+                    break
+                distances.splice i, 0, distance
+                entities.splice i, 0, e
+          console.log distances
+          console.log entities
+          entities[0]
+      started: ->
+        do @getTurn
+      gotTurn: (entity) ->
+        if (entity.auto)
+          @autoTurn entity
+      autoTurn: (entity) ->
+        ##attackRange = @tiles.range entity.tile, entity.stats.range.value
+        ##moveRange = @tiles.range entity.tile, entity.stats.steps.value
+        #console.log @findNearestEnemy entity, @entities.list()
+        # If there's a target length
+        #if targets.length
+        #  targets.forEach (target) ->
+        #    entity.attack target
+        #    console.log entity.name, 'attacked ', target.name, ': ->', target.stats.health.value
+        #else
+          #setTimeout =>
+          #  do @evaluateEntities
+          #, 100
+      hasWinner: (entity) ->
+        console.log 'winner is:', entity
+        done()
+      hasNoWinnerYet: ->
+        do @getTurn
+    Game.start()

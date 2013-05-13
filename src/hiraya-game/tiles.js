@@ -149,7 +149,8 @@ var Tiles = Class.extend({
    * @returns {Boolean}
    */
   _movementCost: function(start, end) {
-    return end.entities.length || end.wall ? 10000 : end.val();
+    //return end.entities.length || end.wall ? 10000 : end.val();
+    return end.wall ? 10000 : end.val();
   },
 
   /**
@@ -158,14 +159,15 @@ var Tiles = Class.extend({
    * @method range
    * @param {Hiraya.Tile} tile
    * @param {Number} [radius=1]
+   * @param {Boolean} [ignoreCost=false]
    * @returns {Array}
    */
-  range: function(tile, radius) {
+  range: function(tile, radius, ignoreCost) {
     var open = [tile];
     var closed = [];
     var currTile;
     var adjacent;
-    var neighbor, newCost, i, _len;
+    var neighbor, newCost, i, _len, tileCost;
 
     if (radius === undefined) {
       radius = 1;
@@ -179,7 +181,8 @@ var Tiles = Class.extend({
         _len = adjacent.length;
         for(i = 0; i < _len; i++) {
           neighbor = adjacent[i];
-          newCost = currTile.cost + this._movementCost(currTile, neighbor);
+          tileCost = ignoreCost ? 1 : this._movementCost(currTile, neighbor);
+          newCost = currTile.cost + tileCost;
           if (neighbor.blocked(currTile) || currTile.blocked(neighbor)) {
             continue;
           }
@@ -218,8 +221,8 @@ var Tiles = Class.extend({
     var openList,
     closedList,
     currentNode,
-    adjacents,
-    adjacent,
+    neighbors,
+    neighbor,
     scoreG,
     scoreGBest,
     i,
@@ -251,32 +254,32 @@ var Tiles = Class.extend({
       // case DEFAULT: Move current node to the closed list.
       openList.splice(currentNode, 1);
       closedList.push(currentNode);
-      // Find the best score in the adjacenting tile of the hex.
-      adjacents = this.adjacent(currentNode);
-      for(i=0, _len = adjacents.length; i < _len; i++) {
-        adjacent = adjacents[i];
-        if (closedList.indexOf(adjacent) > -1 || 
-            adjacent.wall ||
-              adjacent.isOccupied() ||
-                currentNode.blocked(adjacent) ||
-                  adjacent.blocked(currentNode)
+      // Find the best score in the neighboring tile of the hex.
+      neighbors = this.adjacent(currentNode);
+      for(i=0, _len = neighbors.length; i < _len; i++) {
+        neighbor = neighbors[i];
+        if (closedList.indexOf(neighbor) > -1 ||
+            neighbor.wall ||
+            //neighbor.isOccupied() ||
+            currentNode.blocked(neighbor) ||
+            neighbor.blocked(currentNode)
            ) {
-             continue;
+              continue;
            }
            scoreG = currentNode.g + 1;
            scoreGBest = false;
            // if it's the first time to touch this tile.
-           if(openList.indexOf(adjacent) === -1) {
+           if(openList.indexOf(neighbor) === -1) {
              scoreGBest = true;
-             adjacent.h = this.heuristic(adjacent, end);
-             openList.push(adjacent);
-           } else if (scoreG < adjacent.g) {
+             neighbor.h = this.heuristic(neighbor, end);
+             openList.push(neighbor);
+           } else if (scoreG < neighbor.g) {
              scoreGBest = true;
            }
            if (scoreGBest) {
-             adjacent.parent = currentNode;
-             adjacent.g = scoreG;
-             adjacent.f = adjacent.g + adjacent.h;
+             neighbor.parent = currentNode;
+             neighbor.g = scoreG;
+             neighbor.f = neighbor.g + neighbor.h;
            }
       }
     }
@@ -303,4 +306,4 @@ var Tiles = Class.extend({
   }
 });
 
-  module.exports = Tiles;
+module.exports = Tiles;

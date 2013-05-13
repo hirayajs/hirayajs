@@ -83,6 +83,7 @@ var Level = GetterSetter.extend({
         tile.occupy(entity);
       }
     }
+
     this.entities.add(entity);
     this.addedEntity(entity);
     return this;

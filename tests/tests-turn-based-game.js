@@ -10,7 +10,7 @@
     expect = this.expect;
   }
 
-  describe('Turn-based game test suite', function() {
+  describe.skip('Turn-based game test suite', function() {
     describe('A Base Game', function() {
       var Game;
       Game = Hiraya.Game.create();
@@ -123,7 +123,7 @@
       });
     });
     describe('Turn based entities', function() {
-      return it('should have a turn and turnspeed stat attribute by DEFAULT', function() {
+      return it('should have a steps, range, turn and turnspeed stat attribute by DEFAULT', function() {
         var Game;
         Game = Hiraya.Game.create();
         Game.Level = Hiraya.LevelTurnBased.extend({
@@ -136,8 +136,10 @@
               }
             });
             entity = this.entities.at(0);
-            expect(entity.stats.turn.value).to.be.ok();
-            return expect(entity.stats.turnspeed.value).to.be.ok();
+            expect(entity.stats.steps).to.be.ok();
+            expect(entity.stats.range).to.be.ok();
+            expect(entity.stats.turn).to.be.ok();
+            return expect(entity.stats.turnspeed).to.be.ok();
           }
         });
         return Game.start();
@@ -182,7 +184,7 @@
         });
         return Game.start();
       });
-      it('should start calculating the turn list', function(done) {
+      return it('should start calculating the turn list', function(done) {
         var Game;
         Game = Hiraya.Game.create();
         Game.Level = Hiraya.LevelTurnBased.extend({
@@ -223,80 +225,106 @@
         });
         return Game.start();
       });
-      return it('should announce the winner once there is only one left', function(done) {
-        var Game;
-        Game = Hiraya.Game.create();
-        Game.Level = Hiraya.LevelTurnBased.extend({
-          minEntities: 2,
-          _tickSpeed: 0,
-          ready: function() {
-            this.addEntity({
-              name: 'marine',
-              auto: true,
-              stats: {
-                health: [10],
-                attack: [0],
-                turnspeed: [0]
-              },
-              tile: {
-                x: 0,
-                y: 0
-              }
-            });
-            return this.addEntity({
-              name: 'vanguard',
-              auto: true,
-              stats: {
-                health: [10],
-                attack: [1]
-              },
-              tile: {
-                x: 1,
-                y: 0
-              }
-            });
-          },
-          addedEntity: function() {
-            if (this.entities.length >= this.minEntities) {
-              return this.started();
+    });
+  });
+
+  describe.only('An automated game test', function() {
+    return it('should announce the winner once there is only one left', function(done) {
+      var Game;
+      Game = Hiraya.Game.create();
+      Game.Level = Hiraya.LevelTurnBased.extend({
+        minEntities: 3,
+        _tickSpeed: 0,
+        ready: function() {
+          this.addEntity({
+            name: 'marine',
+            auto: true,
+            stats: {
+              health: [10],
+              attack: [0],
+              turnspeed: [0]
+            },
+            tile: {
+              x: 0,
+              y: 0
             }
-          },
-          started: function() {
-            return this.getTurn();
-          },
-          gotTurn: function(entity) {
-            if (entity.auto) {
-              return this.autoTurn(entity);
+          });
+          this.addEntity({
+            name: 'marine-2',
+            auto: true,
+            stats: {
+              health: [10],
+              attack: [0],
+              turnspeed: [0]
+            },
+            tile: {
+              x: 4,
+              y: 3
             }
-          },
-          autoTurn: function(entity) {
-            var range, targets, tiles;
-            range = this.tiles.range(entity.tile);
-            tiles = range.filter(function(tile) {
-              return tile.isOccupied();
-            });
-            targets = [];
-            tiles.forEach(function(tile) {
-              return tile.entities.forEach(function(entity) {
-                return targets.push(entity);
-              });
-            });
-            targets.forEach(function(target) {
-              entity.attack(target);
-              return console.log(entity.name, 'attacked ', target.name, ': ->', target.stats.health.value);
-            });
-            return this.evaluateEntities();
-          },
-          hasWinner: function(entity) {
-            console.log('winner is:', entity);
-            return done();
-          },
-          hasNoWinnerYet: function() {
-            return this.getTurn();
+          });
+          return this.addEntity({
+            name: 'vanguard',
+            auto: true,
+            stats: {
+              health: [10],
+              attack: [1],
+              range: [5]
+            },
+            tile: {
+              x: 3,
+              y: 3
+            }
+          });
+        },
+        addedEntity: function(entity) {
+          if (this.entities.length === this.minEntities) {
+            return this.started();
           }
-        });
-        return Game.start();
+        },
+        _findNearestEnemy: function(entity, tiles) {
+          var distances, entities;
+          distances = [];
+          entities = [];
+          tiles.forEach(function(tile) {
+            var d, distance, e, i, index, _i, _len;
+            if (tile.isOccupied()) {
+              e = tile.entities[0];
+              if (e !== entity) {
+                distance = Math.abs((tile.x - entity.tile.x) + (tile.y - entity.tile.y));
+                index = 0;
+                for (i = _i = 0, _len = distances.length; _i < _len; i = ++_i) {
+                  d = distances[i];
+                  if (distance < d) {
+                    break;
+                  }
+                }
+                distances.splice(i, 0, distance);
+                return entities.splice(i, 0, e);
+              }
+            }
+          });
+          console.log(distances);
+          console.log(entities);
+          return entities[0];
+        },
+        started: function() {
+          return this.getTurn();
+        },
+        gotTurn: function(entity) {
+          if (entity.auto) {
+            return this.autoTurn(entity);
+          }
+        },
+        autoTurn: function(entity) {},
+        hasWinner: function(entity) {
+          console.log('winner is:', entity);
+          return done();
+        },
+        hasNoWinnerYet: function() {
+          return this.getTurn();
+        }
       });
+      return Game.start();
     });
   });
 

@@ -49,11 +49,11 @@ var Stats = Class.extend({
       stat.setMax(maxValue);
       stat.setValue(value);
     } else {
-      this[name] = Stat.create({
-        name: name,
-        value: value,
-        max: maxValue
-      });
+      stat = Stat.create();
+      stat.name = name;
+      stat.setMax(maxValue);
+      stat.setValue(value);
+      this[name] = stat;
     }
     return this;
   },

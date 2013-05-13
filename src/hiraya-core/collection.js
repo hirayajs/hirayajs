@@ -92,7 +92,6 @@ var Collection = Emitter.extend({
         var item = this._list[i];
         if (fn(item)) {
           return item;
-          break;
         }
       }
     }
@@ -110,6 +109,17 @@ var Collection = Emitter.extend({
         break;
       }
     }
+  },
+
+  /**
+   * Returns a clone of the collection which can be used for other purposes outside the normal
+   * collection operation.
+   *
+   * @method list
+   * @returns {Array}
+   */
+  list: function() {
+    return this._list.slice();
   }
 });
 
