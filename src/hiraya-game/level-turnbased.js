@@ -24,7 +24,7 @@ var LevelTurnBased = Level.extend({
   Entity: EntityTurnBased,
 
   /**
-   * Determines how fast the tick for the turn calculation will be. Internal use only.
+   * Determines how fast the tick for the turn calculation will be.
    *
    * @property tickSpeed
    * @type {Number}
@@ -119,9 +119,16 @@ var LevelTurnBased = Level.extend({
    *
    * @event hasWinner
    * @param {entity} Hiraya.EntityTurnBased
-   * @returns null
    */
   hasWinner: function(entity) {
+  },
+
+  /**
+   * Fires when there is no winner yet after performing a `.evaluateEntities()` command
+   *
+   * @event hasNoWinnerYet
+   */
+  hasNoWinnerYet: function() {
   }
 });
 

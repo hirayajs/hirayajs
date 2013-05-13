@@ -232,6 +232,7 @@
           ready: function() {
             this.addEntity({
               name: 'marine',
+              auto: true,
               stats: {
                 health: [10],
                 attack: [0],
@@ -244,6 +245,7 @@
             });
             return this.addEntity({
               name: 'vanguard',
+              auto: true,
               stats: {
                 health: [10],
                 attack: [1]
@@ -263,6 +265,11 @@
             return this.getTurn();
           },
           gotTurn: function(entity) {
+            if (entity.auto) {
+              return this.autoTurn(entity);
+            }
+          },
+          autoTurn: function(entity) {
             var range, targets, tiles;
             range = this.tiles.range(entity.tile);
             tiles = range.filter(function(tile) {

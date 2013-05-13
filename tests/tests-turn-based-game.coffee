@@ -127,10 +127,12 @@ describe 'Turn-based game test suite', ->
         ready: ->
           @addEntity
             name: 'marine'
+            auto: true
             stats: health: [10], attack: [0], turnspeed: [0]
             tile: x: 0, y: 0
           @addEntity
             name: 'vanguard'
+            auto: true
             stats: health: [10], attack: [1]
             tile: x: 1, y: 0
         addedEntity: ->
@@ -139,12 +141,16 @@ describe 'Turn-based game test suite', ->
         started: ->
           do @getTurn
         gotTurn: (entity) ->
+          if (entity.auto)
+            @autoTurn entity
+        autoTurn: (entity) ->
           range = @tiles.range entity.tile
           tiles = range.filter (tile) -> tile.isOccupied()
           targets = []
           tiles.forEach (tile) ->
             tile.entities.forEach (entity) ->
               targets.push entity
+          ## TODO: add API for findNearestEnemy method
           targets.forEach (target) ->
             entity.attack target
             console.log entity.name, 'attacked ', target.name, ': ->', target.stats.health.value
