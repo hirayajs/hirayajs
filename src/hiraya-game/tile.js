@@ -14,7 +14,6 @@ var Class = require('../hiraya-core/class');
  * @namespace Hiraya
  */
 var Tile = Class.extend({
-
   /**
    * x-axis coordinate
    *
@@ -31,16 +30,49 @@ var Tile = Class.extend({
    */
   y: null,
 
+  /**
+   * The z-index of the tile which is assigned during tile population starting from top left to top bottom.
+   *
+   * @property z
+   * @type {Number}
+   */
   z: null,
 
   /**
    * Determining if the tile is passable. Used in the A-star algorithm.
    *
-   * @property wall
+   * @property isWall
    * @type {Boolean}
    * @default false
    */
-  wall: null,
+  isWall: null,
+
+  /**
+   * List of tile coordinates that are not passable by this tile.
+   *
+   *     var tiles = Hiraya.Tiles.create();
+   *     tile = tiles.get(0, 0);
+   *     tile.set('walls', [
+   *       [1, 0],
+   *       [0, 1]
+   *     ]);
+   *     tile.blocked(tiles.get(1, 0)); //-> true
+   *     tile.blocked(tiles.get(0, 1)); //-> true
+   *     tile.blocked(tiles.get(1, 1)); //-> false
+   *
+   * @property walls
+   * @type {Array}
+   */
+  walls: null,
+
+  /**
+   * The value of the tile.
+   *
+   * @property cost
+   * @type {Number}
+   * @default -1
+   */
+  cost: null,
 
   /**
    * List of entities occupying this tile
@@ -57,11 +89,12 @@ var Tile = Class.extend({
    * @returns {Number} score
    */
   val: function() {
-    return this.entities.length || this.wall ? 1000 : 1;
+    return this.entities.length || this.isWall ? 1000 : 1;
   },
 
   init: function() {
     this.entities = [];
+    this.cost = -1;
   },
 
   /**
@@ -125,6 +158,29 @@ var Tile = Class.extend({
    */
   isOccupied: function() {
     return this.entities.length > 0;
+  },
+
+  /**
+   * Checks if the target tile is an element of the `.walls` array.
+   *
+   * @method blocked
+   * @param {Hiraya.Tile} tile
+   * @returns {Boolean}
+   */
+  blocked: function(tile) {
+    var x = tile.x,
+        y = tile.y,
+        wall, blocked;
+    if (this.walls && this.walls.length) {
+      for (var i = this.walls.length - 1; i >= 0; i--){
+        wall = this.walls[i];
+        if (wall[0] == x && wall[1] === y) {
+          blocked = true;
+          break;
+        }
+      }
+    }
+    return blocked;
   }
 });
 
