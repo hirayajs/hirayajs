@@ -11,7 +11,7 @@
   }
 
   describe('Turn-based game test suite', function() {
-    describe('A Game', function() {
+    describe('A Base Game', function() {
       var Game;
       Game = Hiraya.Game.create();
       it('should create a Game namespace', function() {
@@ -67,12 +67,6 @@
         Game = Hiraya.Game.create();
         Game.Level = Hiraya.LevelTurnBased.extend({
           Tiles: Hiraya.Tiles.extend({
-            Tile: Hiraya.Tile.extend({
-              vacate: function() {
-                console.log('leaving...');
-                return this.parent();
-              }
-            }),
             rows: 10,
             columns: 10
           }),
@@ -92,7 +86,7 @@
         return Game.start();
       });
     });
-    return describe('Attacking entities', function() {
+    describe('Attacking entities', function() {
       return it('should be able to target other entities', function() {
         var Game;
         Game = Hiraya.Game.create();
@@ -123,6 +117,175 @@
             enemy = this.entities.at(1);
             hero.attack(enemy);
             return expect(enemy.stats.health.isEmpty()).to.be(true);
+          }
+        });
+        return Game.start();
+      });
+    });
+    describe('Turn based entities', function() {
+      return it('should have a turn and turnspeed stat attribute by DEFAULT', function() {
+        var Game;
+        Game = Hiraya.Game.create();
+        Game.Level = Hiraya.LevelTurnBased.extend({
+          ready: function() {
+            var entity;
+            this.addEntity({
+              tile: {
+                x: 0,
+                y: 0
+              }
+            });
+            entity = this.entities.at(0);
+            expect(entity.stats.turn.value).to.be.ok();
+            return expect(entity.stats.turnspeed.value).to.be.ok();
+          }
+        });
+        return Game.start();
+      });
+    });
+    return describe('A simple round', function() {
+      it('should have two entities to start', function(done) {
+        var Game;
+        Game = Hiraya.Game.create();
+        Game.Level = Hiraya.LevelTurnBased.extend({
+          minEntities: 2,
+          ready: function() {
+            this.addEntity({
+              stats: {
+                health: [1],
+                attack: [1]
+              },
+              tile: {
+                x: 0,
+                y: 0
+              }
+            });
+            return this.addEntity({
+              stats: {
+                health: [1],
+                attack: [1]
+              },
+              tile: {
+                x: 1,
+                y: 0
+              }
+            });
+          },
+          addedEntity: function() {
+            if (this.entities.length >= this.minEntities) {
+              return this.started();
+            }
+          },
+          started: function() {
+            return done();
+          }
+        });
+        return Game.start();
+      });
+      it('should start calculating the turn list', function(done) {
+        var Game;
+        Game = Hiraya.Game.create();
+        Game.Level = Hiraya.LevelTurnBased.extend({
+          minEntities: 2,
+          ready: function() {
+            this.addEntity({
+              stats: {
+                health: [1],
+                attack: [1]
+              },
+              tile: {
+                x: 0,
+                y: 0
+              }
+            });
+            return this.addEntity({
+              stats: {
+                health: [1],
+                attack: [1]
+              },
+              tile: {
+                x: 1,
+                y: 0
+              }
+            });
+          },
+          addedEntity: function() {
+            if (this.entities.length >= this.minEntities) {
+              return this.started();
+            }
+          },
+          started: function() {
+            return this.getTurn();
+          },
+          gotTurn: function() {
+            return done();
+          }
+        });
+        return Game.start();
+      });
+      return it('should announce the winner once there is only one left', function(done) {
+        var Game;
+        Game = Hiraya.Game.create();
+        Game.Level = Hiraya.LevelTurnBased.extend({
+          minEntities: 2,
+          _tickSpeed: 0,
+          ready: function() {
+            this.addEntity({
+              name: 'marine',
+              stats: {
+                health: [10],
+                attack: [0],
+                turnspeed: [0]
+              },
+              tile: {
+                x: 0,
+                y: 0
+              }
+            });
+            return this.addEntity({
+              name: 'vanguard',
+              stats: {
+                health: [10],
+                attack: [1]
+              },
+              tile: {
+                x: 1,
+                y: 0
+              }
+            });
+          },
+          addedEntity: function() {
+            if (this.entities.length >= this.minEntities) {
+              return this.started();
+            }
+          },
+          started: function() {
+            return this.getTurn();
+          },
+          gotTurn: function(entity) {
+            var range, targets, tiles;
+            range = this.tiles.range(entity.tile);
+            tiles = range.filter(function(tile) {
+              return tile.isOccupied();
+            });
+            targets = [];
+            tiles.forEach(function(tile) {
+              return tile.entities.forEach(function(entity) {
+                return targets.push(entity);
+              });
+            });
+            targets.forEach(function(target) {
+              entity.attack(target);
+              return console.log(entity.name, 'attacked ', target.name, ': ->', target.stats.health.value);
+            });
+            return this.evaluateEntities();
+          },
+          hasWinner: function(entity) {
+            console.log('winner is:', entity);
+            return done();
+          },
+          hasNoWinnerYet: function() {
+            return this.getTurn();
           }
         });
         return Game.start();

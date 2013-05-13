@@ -26,12 +26,11 @@ var LevelTurnBased = Level.extend({
   /**
    * Determines how fast the tick for the turn calculation will be. Internal use only.
    *
-   * @property _tickSpeed
+   * @property tickSpeed
    * @type {Number}
-   * @private
    * @default 1
    */
-  _tickSpeed: 1,
+  tickSpeed: 1,
 
   /**
    * A timeout identifier for the tick operation.
@@ -52,9 +51,7 @@ var LevelTurnBased = Level.extend({
     var tick = function() {
       entity = _this._getEntityTurn();
       if (!entity) {
-        setTimeout(function() {
-          tick();
-        }, _this._tickSpeed);
+        setTimeout(tick, _this.tickSpeed);
       } else {
         entity.stats.turn.empty();
         _this.gotTurn(entity);
@@ -112,6 +109,8 @@ var LevelTurnBased = Level.extend({
     });
     if (enabled.length <= 1) {
       this.hasWinner(enabled[0]);
+    } else {
+      this.hasNoWinnerYet();
     }
   },
 

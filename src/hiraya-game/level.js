@@ -108,6 +108,7 @@ var Level = GetterSetter.extend({
   addedEntity: function(entity) {
   }
 
+
 });
 
 module.exports = Level;

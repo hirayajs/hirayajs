@@ -86,6 +86,17 @@ var Collection = Emitter.extend({
     return this._list[index];
   },
 
+  find: function(fn) {
+    if (typeof fn === 'function') {
+      for (var i = this._list.length - 1; i >= 0; i--){
+        var item = this._list[i];
+        if (fn(item)) {
+          return item;
+          break;
+        }
+      }
+    }
+  },
 
   /**
    * Iterates to each element in the collection. If the callback parameter returns false, it will halt the looping operation.

@@ -23,7 +23,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity":7,"./hiraya-game/entity-turnbased":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -628,6 +628,17 @@ var Collection = Emitter.extend({
     return this._list[index];
   },
 
+  find: function(fn) {
+    if (typeof fn === 'function') {
+      for (var i = this._list.length - 1; i >= 0; i--){
+        var item = this._list[i];
+        if (fn(item)) {
+          return item;
+          break;
+        }
+      }
+    }
+  },
 
   /**
    * Iterates to each element in the collection. If the callback parameter returns false, it will halt the looping operation.
@@ -878,19 +889,6 @@ var Stats = Class.extend({
 module.exports = Stats;
 
 },{"../hiraya-core/class":2,"./stat":5}],7:[function(require,module,exports){
-var Entity = require('./entity');
-
-var EntityTurnBased = Entity.extend({
-  init: function() {
-    this.parent();
-    this.stats.set('turn', 0, 100);
-    this.stats.set('turnspeed', 10);
-  }
-});
-
-module.exports = EntityTurnBased;
-
-},{"./entity":8}],8:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -976,68 +974,20 @@ Entity.id = 0;
 
 module.exports = Entity;
 
-},{"../hiraya-core/getter-setter":16,"./stats":6}],9:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
+},{"../hiraya-core/getter-setter":16,"./stats":6}],8:[function(require,module,exports){
+var Entity = require('./entity');
 
-
-
-var Emitter = require('../hiraya-core/emitter');
-var Level = require('../hiraya-game/level');
-var Tiles = require('../hiraya-game/tiles');
-
-/**
- * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
- * as well as reference to instantiated objects that the Hiraya framework provides.
- *
- *     Game = Hiraya.Game.create();
- *     Game.start(); // Game does its work like preloading assets, initializing classes, etc.
- *
- * @class Game
- * @extends Hiraya.Class
- * @namespace Hiraya
- */
-var Game = Emitter.extend({
-  /**
-   * Path dictionary
-   *
-   * @property paths
-   * @type {Object}
-   * @private
-   */
-  _paths: {},
-
-  /**
-   * The base level class of the game
-   *
-   * @property Level
-   * @type {Level}
-   * @default Hiraya.Level
-   */
-  Level: Level,
-  start: function() {
-    var _this = this;
-    this._paths = {};
-    this._paths['levels:main'] = this.Level.create();
-    this.ready();
-  },
-  paths: function(path) {
-    return this._paths[path];
-  },
-  /**
-   * The `ready` event fires when the window is ready and all the assets are loaded
-   *
-   * @event ready
-   */
-  ready: function() {
+var EntityTurnBased = Entity.extend({
+  init: function() {
+    this.parent();
+    this.stats.set('turn', 0, 100);
+    this.stats.set('turnspeed', 10);
   }
 });
 
-module.exports = Game;
+module.exports = EntityTurnBased;
 
-},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
+},{"./entity":7}],10:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1226,7 +1176,68 @@ var Tile = Class.extend({
 
 module.exports = Tile;
 
-},{"../hiraya-core/class":2}],11:[function(require,module,exports){
+},{"../hiraya-core/class":2}],9:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+
+var Emitter = require('../hiraya-core/emitter');
+var Level = require('../hiraya-game/level');
+var Tiles = require('../hiraya-game/tiles');
+
+/**
+ * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
+ * as well as reference to instantiated objects that the Hiraya framework provides.
+ *
+ *     Game = Hiraya.Game.create();
+ *     Game.start(); // Game does its work like preloading assets, initializing classes, etc.
+ *
+ * @class Game
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Game = Emitter.extend({
+  /**
+   * Path dictionary
+   *
+   * @property paths
+   * @type {Object}
+   * @private
+   */
+  _paths: {},
+
+  /**
+   * The base level class of the game
+   *
+   * @property Level
+   * @type {Level}
+   * @default Hiraya.Level
+   */
+  Level: Level,
+  start: function() {
+    var _this = this;
+    this._paths = {};
+    this._paths['levels:main'] = this.Level.create();
+    this.ready();
+  },
+  paths: function(path) {
+    return this._paths[path];
+  },
+  /**
+   * The `ready` event fires when the window is ready and all the assets are loaded
+   *
+   * @event ready
+   */
+  ready: function() {
+  }
+});
+
+module.exports = Game;
+
+},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],11:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1645,11 +1656,12 @@ var Level = GetterSetter.extend({
   addedEntity: function(entity) {
   }
 
+
 });
 
 module.exports = Level;
 
-},{"../hiraya-core/getter-setter":16,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":16,"../hiraya-core/collection":4,"./entity":7,"./tiles":11}],13:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1678,12 +1690,11 @@ var LevelTurnBased = Level.extend({
   /**
    * Determines how fast the tick for the turn calculation will be. Internal use only.
    *
-   * @property _tickSpeed
+   * @property tickSpeed
    * @type {Number}
-   * @private
    * @default 1
    */
-  _tickSpeed: 1,
+  tickSpeed: 1,
 
   /**
    * A timeout identifier for the tick operation.
@@ -1704,9 +1715,7 @@ var LevelTurnBased = Level.extend({
     var tick = function() {
       entity = _this._getEntityTurn();
       if (!entity) {
-        setTimeout(function() {
-          tick();
-        }, _this._tickSpeed);
+        setTimeout(tick, _this.tickSpeed);
       } else {
         entity.stats.turn.empty();
         _this.gotTurn(entity);
@@ -1764,6 +1773,8 @@ var LevelTurnBased = Level.extend({
     });
     if (enabled.length <= 1) {
       this.hasWinner(enabled[0]);
+    } else {
+      this.hasNoWinnerYet();
     }
   },
 
@@ -1781,7 +1792,7 @@ var LevelTurnBased = Level.extend({
 
 module.exports = LevelTurnBased;
 
-},{"./level":12,"./entity-turnbased":7}],16:[function(require,module,exports){
+},{"./level":12,"./entity-turnbased":8}],16:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
