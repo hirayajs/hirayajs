@@ -258,8 +258,8 @@
               turnspeed: [0]
             },
             tile: {
-              x: 4,
-              y: 3
+              x: 1,
+              y: 1
             }
           });
           return this.addEntity({
@@ -268,10 +268,10 @@
             stats: {
               health: [10],
               attack: [1],
-              range: [5]
+              range: [1]
             },
             tile: {
-              x: 3,
+              x: 5,
               y: 3
             }
           });
@@ -281,32 +281,6 @@
             return this.started();
           }
         },
-        _findNearestEnemy: function(entity, tiles) {
-          var distances, entities;
-          distances = [];
-          entities = [];
-          tiles.forEach(function(tile) {
-            var d, distance, e, i, index, _i, _len;
-            if (tile.isOccupied()) {
-              e = tile.entities[0];
-              if (e !== entity) {
-                distance = Math.abs((tile.x - entity.tile.x) + (tile.y - entity.tile.y));
-                index = 0;
-                for (i = _i = 0, _len = distances.length; _i < _len; i = ++_i) {
-                  d = distances[i];
-                  if (distance < d) {
-                    break;
-                  }
-                }
-                distances.splice(i, 0, distance);
-                return entities.splice(i, 0, e);
-              }
-            }
-          });
-          console.log(distances);
-          console.log(entities);
-          return entities[0];
-        },
         started: function() {
           return this.getTurn();
         },
@@ -315,7 +289,20 @@
             return this.autoTurn(entity);
           }
         },
-        autoTurn: function(entity) {},
+        autoTurn: function(entity) {
+          var nearestEntityTileFrom, target;
+          target = this.proximity(entity, 'range');
+          target = target[0];
+          if (target) {
+            entity.attack(target);
+            console.log('tarrggget', target.name);
+          } else {
+            nearestEntityTileFrom = this.nearestEntityTileFrom(entity);
+            nearestEntityTileFrom.occupy(entity);
+            console.log('moving to nearest entity', nearestEntityTileFrom.json());
+          }
+          return this.evaluateEntities();
+        },
         hasWinner: function(entity) {
           console.log('winner is:', entity);
           return done();

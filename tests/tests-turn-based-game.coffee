@@ -137,38 +137,32 @@ describe.only 'An automated game test', ->
           name: 'marine-2'
           auto: true
           stats: health: [10], attack: [0], turnspeed: [0]
-          tile: x: 4, y: 3
+          tile: x: 1, y: 1
         @addEntity
           name: 'vanguard'
           auto: true
-          stats: health: [10], attack: [1], range: [5]
-          tile: x: 3, y: 3
+          stats: health: [10], attack: [1], range: [1]
+          tile: x: 5, y: 3
       addedEntity: (entity) ->
         if @entities.length is @minEntities
           do @started
-      _findNearestEnemy: (entity, tiles) ->
-          distances = []
-          entities = []
-          tiles.forEach (tile) ->
-            if tile.isOccupied()
-              e = tile.entities[0]
-              if e isnt entity
-                distance = Math.abs((tile.x - entity.tile.x) + (tile.y - entity.tile.y))
-                index = 0
-                for d, i in distances
-                  if distance < d
-                    break
-                distances.splice i, 0, distance
-                entities.splice i, 0, e
-          console.log distances
-          console.log entities
-          entities[0]
       started: ->
         do @getTurn
       gotTurn: (entity) ->
         if (entity.auto)
           @autoTurn entity
       autoTurn: (entity) ->
+        # only if no immediate target is located, move
+        target = @proximity entity, 'range'
+        target = target[0]
+        if target
+          entity.attack target
+          console.log 'tarrggget', target.name
+        else
+          nearestEntityTileFrom = @nearestEntityTileFrom entity
+          nearestEntityTileFrom .occupy entity
+          console.log 'moving to nearest entity', nearestEntityTileFrom.json()
+        do @evaluateEntities
         ##attackRange = @tiles.range entity.tile, entity.stats.range.value
         ##moveRange = @tiles.range entity.tile, entity.stats.steps.value
         #console.log @findNearestEnemy entity, @entities.list()

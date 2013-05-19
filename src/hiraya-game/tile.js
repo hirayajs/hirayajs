@@ -181,6 +181,25 @@ var Tile = Class.extend({
       }
     }
     return blocked;
+  },
+
+  nearest: function(list) {
+    var distances = [];
+    var tiles = [];
+    for(var i=0,len=list.length; i<len; i++) {
+      var tile = list[i];
+      var distance = Math.abs(tile.x + tile.y - this.x - this.y);
+      var index = 0;
+      for(var ii=0,llen=distances.length; ii<llen; ii++) {
+        if (distance < distances[ii]) {
+          index = ii;
+          break;
+        }
+      }
+      distances.splice(index, 0, distance);
+      tiles.splice(index, 0, tile);
+    }
+    return tiles[0];
   }
 });
 

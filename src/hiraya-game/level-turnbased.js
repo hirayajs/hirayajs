@@ -137,6 +137,9 @@ var LevelTurnBased = Level.extend({
       var tile = tiles[i];
       var occupant = tile.entities[0];
       if (occupant && occupant !== entity) {
+        if (occupant.stats.health.isEmpty()) {
+          continue;
+        }
         var distance = Math.abs(occupant.tile.x - entity.tile.x + occupant.tile.y - entity.tile.y);
         var index = 0;
         for(var ii=0, llen=distances.length; ii<llen; ii++) {
@@ -150,6 +153,23 @@ var LevelTurnBased = Level.extend({
       }
     }
     return entities;
+  },
+
+  /**
+   * Gets the nearest tile of an entity from a tile. Basic path finding helper in finding
+   *
+   * @method nearestEntityTileFrom
+   * @param {Hiraya.Entity} entity
+   * @returns {Hiraya.Tile}
+   */
+  nearestEntityTileFrom: function(entity, tile) {
+    var proximity = this.proximity(entity);
+    var target = proximity[0];
+    var nearest;
+    if (target) {
+      nearest = entity.tile.nearest(this.tiles.adjacent(target.tile));
+    }
+    return nearest;
   },
 
   /**
