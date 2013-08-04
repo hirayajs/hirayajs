@@ -295,16 +295,13 @@
           target = target[0];
           if (target) {
             entity.attack(target);
-            console.log('tarrggget', target.name);
           } else {
             nearestEntityTileFrom = this.nearestEntityTileFrom(entity);
             nearestEntityTileFrom.occupy(entity);
-            console.log('moving to nearest entity', nearestEntityTileFrom.json());
           }
           return this.evaluateEntities();
         },
         hasWinner: function(entity) {
-          console.log('winner is:', entity);
           return done();
         },
         hasNoWinnerYet: function() {

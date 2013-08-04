@@ -23,7 +23,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/emitter":2,"./hiraya-core/class":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13}],3:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -422,7 +422,7 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 })(require("__browserify_process"))
-},{"__browserify_process":14}],2:[function(require,module,exports){
+},{"__browserify_process":14}],3:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -539,7 +539,7 @@ var Emitter = Class.extend({
 
 module.exports = Emitter;
 
-},{"events":15,"./class":3}],4:[function(require,module,exports){
+},{"events":15,"./class":2}],4:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -667,367 +667,7 @@ var Collection = Emitter.extend({
 
 module.exports = Collection;
 
-},{"./emitter":2}],8:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
-
-
-var GetterSetter = require('../hiraya-core/getter-setter');
-var Stats = require('./stats');
-
-/**
- * A basic game entity that has basic API like stats, attack and damage commands.
- *
- * @class Entity
- * @extends Hiraya.GetterSetter
- * @namespace Hiraya
- */
-var Entity = GetterSetter.extend({
-  /**
-   * The id of the entity. Can be set uniquely or use the default Entity class ID
-   *
-   * @property id
-   * @type {Number}
-   */
-  id: null,
-  init: function() {
-    if (this.id === undefined) {
-      this.id = Entity.id++;
-    }
-    this.stats = Stats.create();
-    this.stats
-      .set('health', 100)
-      .set('attack', 100);
-    this.parent();
-  },
-
-  /**
-   * Attacks an enemy based on its attack stat value
-   *
-   * @method attack
-   * @param {Entity} enemyEntity
-   * @chainable
-   */
-  attack: function(enemyEntity) {
-    enemyEntity.damage(this.stats.attack.value);
-    return this;
-  },
-
-  /**
-   * Reduces health by 1
-   *
-   * @method damage
-   * @param {Number} damage
-   * @chainable
-   */
-  damage: function(damage) {
-    this.stats.health.reduce(damage);
-    return this;
-  },
-
-  /**
-   * Set the entity's attributes
-   *
-   * @method setStats
-   * @param {Object} attributes
-   */
-  setStats: function(attributes) {
-    for(var key in attributes) {
-      if (attributes.hasOwnProperty(key)) {
-        this[key] = Stat.create({ max: attributes[key] });
-      }
-    }
-  }
-});
-
-/**
- * An id counter for the Entity class
- *
- * @property id
- * @static
- * @type {Number}
- */
-Entity.id = 0;
-
-module.exports = Entity;
-
-},{"../hiraya-core/getter-setter":16,"./stats":6}],9:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
-
-
-
-var Emitter = require('../hiraya-core/emitter');
-var Level = require('../hiraya-game/level');
-var Tiles = require('../hiraya-game/tiles');
-
-/**
- * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
- * as well as reference to instantiated objects that the Hiraya framework provides.
- *
- *     Game = Hiraya.Game.create();
- *     Game.start(); // Game does its work like preloading assets, initializing classes, etc.
- *
- * @class Game
- * @extends Hiraya.Class
- * @namespace Hiraya
- */
-var Game = Emitter.extend({
-  /**
-   * Path dictionary
-   *
-   * @property paths
-   * @type {Object}
-   * @private
-   */
-  _paths: {},
-
-  /**
-   * The base level class of the game
-   *
-   * @property Level
-   * @type {Level}
-   * @default Hiraya.Level
-   */
-  Level: Level,
-  start: function() {
-    var _this = this;
-    this._paths = {};
-    this._paths['levels:main'] = this.Level.create();
-    this.ready();
-  },
-  paths: function(path) {
-    return this._paths[path];
-  },
-  /**
-   * The `ready` event fires when the window is ready and all the assets are loaded
-   *
-   * @event ready
-   */
-  ready: function() {
-  }
-});
-
-module.exports = Game;
-
-},{"../hiraya-core/emitter":2,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],13:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
-
-
-var Level = require('./level');
-var EntityTurnBased = require('./entity-turnbased');
-
-/**
- * `Hiraya.LevelTurnBased` manages entities and game logic for turn-based games.
- *
- * ### Events
- *
- * - `getTurnTimedOut`
- * - `gotTurn`
- * - `hasNoWinnerYet`
- * - `hasWinner`
- *
- * @class LevelTurnBased
- * @extends Hiraya.Level
- * @namespace Hiraya
- */
-var LevelTurnBased = Level.extend({
-  Entity: EntityTurnBased,
-
-  /**
-   * Determines how fast the tick for the turn calculation will be.
-   *
-   * @property tickSpeed
-   * @type {Number}
-   * @default 1
-   */
-  tickSpeed: 1,
-
-  /**
-   * Determines the number of tries the `.getTurn()` function can do before
-   * giving up.
-   *
-   * @property _maxGetTurnAttempts
-   * @type {Number}
-   * @private
-   * @default 25
-   */
-  _maxGetTurnAttempts: 25,
-
-  /**
-   * Finds the next entity to take its turn.
-   *
-   * @method getTurn
-   */
-  getTurn: function() {
-    var entity, _this = this;
-    var tries = 0;
-    var maxTries = this._maxGetTurnAttempts;
-    var tick = function() {
-      entity = _this._getEntityTurn();
-      tries++;
-      if (!entity) {
-        if (tries < maxTries) {
-          setTimeout(tick, _this.tickSpeed);
-        } else {
-          _this.getTurnTimedOut();
-        }
-      } else {
-        entity.stats.turn.empty();
-        _this.gotTurn(entity);
-      }
-    };
-    tick();
-  },
-
-  /**
-   * Increases the entities' turn stat by 1 and returns an entity if it has reached its max turn stat value
-   *
-   * @method _getEntityTurn
-   * @private
-   * @returns Hiraya.EntityTurnBased
-   */
-  _getEntityTurn: function() {
-    var total = this.entities.length;
-    var entity;
-    var result;
-    for(var i=0; i<total; i++) {
-      entity = this.entities.at(i);
-      entity.stats.turn.add(entity.stats.turnspeed.value);
-      if (entity.stats.turn.isMax()) {
-        result = entity;
-        break;
-      }
-    }
-    return result;
-  },
-
-  /**
-   * Checks to see if there is already a winning entity in the game.
-   *
-   * @method evaluateEntities
-   * @returns null
-   */
-  evaluateEntities: function() {
-    var enabled = [];
-    var disabled = [];
-    this.entities.each(function(entity) {
-      if (entity.stats.health.isEmpty()) {
-        disabled.push(entity);
-      } else {
-        enabled.push(entity);
-      }
-    });
-    if (enabled.length <= 1) {
-      this.hasWinner(enabled[0]);
-    } else {
-      this.hasNoWinnerYet();
-    }
-  },
-
-  /**
-   * Finds the nearest entities based on closed proximity.
-   *
-   * @method promixity
-   * @param {Hiraya.EntityTurnBased} entity
-   * @param {String} [by=null]
-   * @returns {Array}
-   */
-  proximity: function(entity, by) {
-    var distances = [],
-      entities = [],
-      tiles,
-      radius = Math.floor(this.tiles.columns * 0.5)
-    ;
-    if (by === 'range') {
-      radius = entity.stats.range.value;
-    }
-    tiles = this.tiles.range(entity.tile, radius, true);
-    for(var i=0,len=tiles.length; i<len; i++) {
-      var tile = tiles[i];
-      var occupant = tile.entities[0];
-      if (occupant && occupant !== entity) {
-        if (occupant.stats.health.isEmpty()) {
-          continue;
-        }
-        var distance = Math.abs(occupant.tile.x - entity.tile.x + occupant.tile.y - entity.tile.y);
-        var index = 0;
-        for(var ii=0, llen=distances.length; ii<llen; ii++) {
-          if (distance < distances[ii]) {
-            index = ii;
-            break;
-          }
-        }
-        distances.splice(index, 0, distance);
-        entities.splice(index, 0, occupant);
-      }
-    }
-    return entities;
-  },
-
-  /**
-   * Gets the nearest tile of an entity from a tile. Basic path finding helper in finding
-   *
-   * @method nearestEntityTileFrom
-   * @param {Hiraya.Entity} entity
-   * @returns {Hiraya.Tile}
-   */
-  nearestEntityTileFrom: function(entity, tile) {
-    var proximity = this.proximity(entity);
-    var target = proximity[0];
-    var nearest;
-    if (target) {
-      nearest = entity.tile.nearest(this.tiles.adjacent(target.tile));
-    }
-    return nearest;
-  },
-
-  /**
-   * Fired when an entity reaches its max `.stats.turnspeed` value.
-   *
-   * @event gotTurn
-   * @param {Hiraya.EntityTurnBased} entity
-   */
-  gotTurn: function(entity) {
-  },
-
-  /**
-   * Fired when a winner has been announced after performing a `.evaluateEntities()` function.
-   *
-   * @event hasWinner
-   * @param {Hiraya.EntityTurnBased} entity
-   */
-  hasWinner: function(entity) {
-  },
-
-  /**
-   * Fired when there is no winner yet after performing a `.evaluateEntities()` function.
-   *
-   * @event hasNoWinnerYet
-   */
-  hasNoWinnerYet: function() {
-  },
-
-  /**
-   * Fired when attempts in finding an entity to take its turn has reached its maximum number of tries.
-   *
-   * @event getTurnTimedOut
-   */
-  getTurnTimedOut: function() {
-  }
-});
-
-
-module.exports = LevelTurnBased;
-
-},{"./level":12,"./entity-turnbased":7}],5:[function(require,module,exports){
+},{"./emitter":3}],5:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1175,22 +815,7 @@ var Stat = Class.extend({
 
 module.exports = Stat;
 
-},{"../hiraya-core/class":3}],7:[function(require,module,exports){
-var Entity = require('./entity');
-
-var EntityTurnBased = Entity.extend({
-  init: function() {
-    this.parent();
-    this.stats.set('turn', 0, 100);
-    this.stats.set('steps', 1);
-    this.stats.set('range', 2);
-    this.stats.set('turnspeed', 10);
-  }
-});
-
-module.exports = EntityTurnBased;
-
-},{"./entity":8}],6:[function(require,module,exports){
+},{"../hiraya-core/class":2}],6:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1273,7 +898,170 @@ var Stats = Class.extend({
 
 module.exports = Stats;
 
-},{"../hiraya-core/class":3,"./stat":5}],10:[function(require,module,exports){
+},{"../hiraya-core/class":2,"./stat":5}],7:[function(require,module,exports){
+var Entity = require('./entity');
+
+var EntityTurnBased = Entity.extend({
+  init: function() {
+    this.parent();
+    this.stats.set('turn', 0, 100);
+    this.stats.set('steps', 1);
+    this.stats.set('range', 2);
+    this.stats.set('turnspeed', 10);
+  }
+});
+
+module.exports = EntityTurnBased;
+
+},{"./entity":8}],8:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+var GetterSetter = require('../hiraya-core/getter-setter');
+var Stats = require('./stats');
+
+/**
+ * A basic game entity that has basic API like stats, attack and damage commands.
+ *
+ * @class Entity
+ * @extends Hiraya.GetterSetter
+ * @namespace Hiraya
+ */
+var Entity = GetterSetter.extend({
+  /**
+   * The id of the entity. Can be set uniquely or use the default Entity class ID
+   *
+   * @property id
+   * @type {Number}
+   */
+  id: null,
+  init: function() {
+    if (this.id === undefined) {
+      this.id = Entity.id++;
+    }
+    this.stats = Stats.create();
+    this.stats
+      .set('health', 100)
+      .set('attack', 100);
+    this.parent();
+  },
+
+  /**
+   * Attacks an enemy based on its attack stat value
+   *
+   * @method attack
+   * @param {Entity} enemyEntity
+   * @chainable
+   */
+  attack: function(enemyEntity) {
+    enemyEntity.damage(this.stats.attack.value);
+    return this;
+  },
+
+  /**
+   * Reduces health by 1
+   *
+   * @method damage
+   * @param {Number} damage
+   * @chainable
+   */
+  damage: function(damage) {
+    this.stats.health.reduce(damage);
+    return this;
+  },
+
+  /**
+   * Set the entity's attributes
+   *
+   * @method setStats
+   * @param {Object} attributes
+   */
+  setStats: function(attributes) {
+    for(var key in attributes) {
+      if (attributes.hasOwnProperty(key)) {
+        this[key] = Stat.create({ max: attributes[key] });
+      }
+    }
+  }
+});
+
+/**
+ * An id counter for the Entity class
+ *
+ * @property id
+ * @static
+ * @type {Number}
+ */
+Entity.id = 0;
+
+module.exports = Entity;
+
+},{"../hiraya-core/getter-setter":16,"./stats":6}],9:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+
+var Emitter = require('../hiraya-core/emitter');
+var Level = require('../hiraya-game/level');
+var Tiles = require('../hiraya-game/tiles');
+
+/**
+ * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
+ * as well as reference to instantiated objects that the Hiraya framework provides.
+ *
+ *     Game = Hiraya.Game.create();
+ *     Game.start(); // Game does its work like preloading assets, initializing classes, etc.
+ *
+ * @class Game
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Game = Emitter.extend({
+  /**
+   * Path dictionary
+   *
+   * @property paths
+   * @type {Object}
+   * @private
+   */
+  _paths: {},
+
+  /**
+   * The base level class of the game
+   *
+   * @property Level
+   * @type {Level}
+   * @default Hiraya.Level
+   */
+  Level: Level,
+
+  start: function() {
+    var _this = this;
+    this._paths = {};
+    this._paths['levels:main'] = this.Level.create();
+    this.ready();
+  },
+  paths: function(path) {
+    return this._paths[path];
+  },
+  /**
+   * The `ready` event fires when the window is ready and all the assets are loaded
+   *
+   * @event ready
+   */
+  ready: function() {
+  }
+});
+
+module.exports = Game;
+
+},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1481,124 +1269,7 @@ var Tile = Class.extend({
 
 module.exports = Tile;
 
-},{"../hiraya-core/class":3}],12:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
-
-
-var GetterSetter = require('../hiraya-core/getter-setter');
-var Collection = require('../hiraya-core/collection');
-var Entity = require('./entity');
-var Tiles = require('./tiles');
-
-/**
- * `Hiraya.Level` manages the game logic and entity interaction.
- *
- * ### Events
- *
- * - `addedEntity`
- *
- * @class Level
- * @extends Hiraya.GetterSetter
- * @namespace Hiraya
- */
-var Level = GetterSetter.extend({
-  /**
-   * @property entities
-   * @type {Hiraya.Collection}
-   */
-  entities: null,
-
-  Entity: Entity,
-
-  Tiles: Tiles,
-
-  init: function() {
-    this.tiles = this.Tiles.create();
-    this.entities = Collection.create();
-    this.parent();
-    this.ready();
-  },
-
-  /**
-   * Emitted after initialization
-   *
-   * @event ready
-   */
-  ready: function() {
-  },
-
-  /**
-   * Adds an entity into the collection based on attributes.
-   *
-   * Following is an example format:
-   *
-   *     level.addEntity({
-   *       name: 'Swordsman',
-   *       stats: {
-   *         health: [500, 1000] // value, max
-   *         attack: [100] // value, max
-   *       }
-   *     })
-   *
-   * @method addEntity
-   * @param {Object} attributes
-   * @chainable
-   */
-  addEntity: function(attributes) {
-    // attributes.stats gets overwritten in library
-    var entity, stats, tile;
-    entity = this.createEntity(attributes);
-    stats = attributes.stats;
-    if (typeof stats === 'object') {
-      for (var key in stats) {
-        if (stats.hasOwnProperty(key)) {
-          var stat = stats[key];
-          entity.stats.set(key, stat[0], stat[1]);
-        }
-      }
-    }
-
-    if (typeof attributes.tile === 'object') {
-      tile = this.tiles.get(attributes.tile.x, attributes.tile.y);
-      if (tile) {
-        tile.occupy(entity);
-      }
-    }
-
-    this.entities.add(entity);
-    this.addedEntity(entity);
-    return this;
-  },
-
-  /**
-   * Creates a `Hiraya.Entity` from a class. Use this to override the classname you wish to use.
-   *
-   * @method createEntity
-   * @param {Object} attributes
-   * @returns Hiraya.Entity
-   */
-  createEntity: function(attributes) {
-    return this.Entity.create(attributes);
-  },
-
-  /**
-   * When an entity is added.
-   *
-   * @event addedEntity
-   * @param {Entity} entity
-   */
-  addedEntity: function(entity) {
-  }
-
-
-});
-
-module.exports = Level;
-
-},{"../hiraya-core/getter-setter":16,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],11:[function(require,module,exports){
+},{"../hiraya-core/class":2}],11:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1909,7 +1580,339 @@ var Tiles = Class.extend({
 
 module.exports = Tiles;
 
-},{"../hiraya-core/class":3,"./tile":10}],16:[function(require,module,exports){
+},{"../hiraya-core/class":2,"./tile":10}],12:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+var GetterSetter = require('../hiraya-core/getter-setter');
+var Collection = require('../hiraya-core/collection');
+var Entity = require('./entity');
+var Tiles = require('./tiles');
+
+/**
+ * `Hiraya.Level` manages the game logic and entity interaction.
+ *
+ * ### Events
+ *
+ * - `addedEntity`
+ *
+ * @class Level
+ * @extends Hiraya.GetterSetter
+ * @namespace Hiraya
+ */
+var Level = GetterSetter.extend({
+  /**
+   * @property entities
+   * @type {Hiraya.Collection}
+   */
+  entities: null,
+
+  Entity: Entity,
+
+  Tiles: Tiles,
+
+  init: function() {
+    this.tiles = this.Tiles.create();
+    this.entities = Collection.create();
+    this.parent();
+    this.ready();
+  },
+
+  /**
+   * Emitted after initialization
+   *
+   * @event ready
+   */
+  ready: function() {
+    this.emit('ready');
+  },
+
+  /**
+   * Adds an entity into the collection based on attributes.
+   *
+   * Following is an example format:
+   *
+   *     level.addEntity({
+   *       name: 'Swordsman',
+   *       stats: {
+   *         health: [500, 1000] // value, max
+   *         attack: [100] // value, max
+   *       }
+   *     })
+   *
+   * @method addEntity
+   * @param {Object} attributes
+   * @chainable
+   */
+  addEntity: function(attributes) {
+    // attributes.stats gets overwritten in library
+    var entity, stats, tile;
+    entity = this.createEntity(attributes);
+    stats = attributes.stats;
+    if (typeof stats === 'object') {
+      for (var key in stats) {
+        if (stats.hasOwnProperty(key)) {
+          var stat = stats[key];
+          entity.stats.set(key, stat[0], stat[1]);
+        }
+      }
+    }
+
+    if (typeof attributes.tile === 'object') {
+      tile = this.tiles.get(attributes.tile.x, attributes.tile.y);
+      if (tile) {
+        tile.occupy(entity);
+      }
+    }
+
+    this.entities.add(entity);
+    this.addedEntity(entity);
+    this.emit('entity:add', entity);
+    return this;
+  },
+
+  /**
+   * Creates a `Hiraya.Entity` from a class. Use this to override the classname you wish to use.
+   *
+   * @method createEntity
+   * @param {Object} attributes
+   * @returns Hiraya.Entity
+   */
+  createEntity: function(attributes) {
+    return this.Entity.create(attributes);
+  },
+
+  /**
+   * When an entity is added.
+   *
+   * @event addedEntity
+   * @param {Entity} entity
+   */
+  addedEntity: function(entity) {
+  }
+
+
+});
+
+module.exports = Level;
+
+},{"../hiraya-core/getter-setter":16,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+var Level = require('./level');
+var EntityTurnBased = require('./entity-turnbased');
+
+/**
+ * `Hiraya.LevelTurnBased` manages entities and game logic for turn-based games.
+ *
+ * ### Events
+ *
+ * - `getTurnTimedOut`
+ * - `gotTurn`
+ * - `hasNoWinnerYet`
+ * - `hasWinner`
+ *
+ * @class LevelTurnBased
+ * @extends Hiraya.Level
+ * @namespace Hiraya
+ */
+var LevelTurnBased = Level.extend({
+  Entity: EntityTurnBased,
+
+  /**
+   * Determines how fast the tick for the turn calculation will be.
+   *
+   * @property tickSpeed
+   * @type {Number}
+   * @default 1
+   */
+  tickSpeed: 1,
+
+  /**
+   * Determines the number of tries the `.getTurn()` function can do before
+   * giving up.
+   *
+   * @property _maxGetTurnAttempts
+   * @type {Number}
+   * @private
+   * @default 25
+   */
+  _maxGetTurnAttempts: 25,
+
+  /**
+   * Finds the next entity to take its turn.
+   *
+   * @method getTurn
+   */
+  getTurn: function() {
+    var entity, _this = this;
+    var tries = 0;
+    var maxTries = this._maxGetTurnAttempts;
+    var tick = function() {
+      entity = _this._getEntityTurn();
+      tries++;
+      if (!entity) {
+        if (tries < maxTries) {
+          setTimeout(tick, _this.tickSpeed);
+        } else {
+          _this.getTurnTimedOut();
+        }
+      } else {
+        entity.stats.turn.empty();
+        _this.gotTurn(entity);
+      }
+    };
+    tick();
+  },
+
+  /**
+   * Increases the entities' turn stat by 1 and returns an entity if it has reached its max turn stat value
+   *
+   * @method _getEntityTurn
+   * @private
+   * @returns Hiraya.EntityTurnBased
+   */
+  _getEntityTurn: function() {
+    var total = this.entities.length;
+    var entity;
+    var result;
+    for(var i=0; i<total; i++) {
+      entity = this.entities.at(i);
+      entity.stats.turn.add(entity.stats.turnspeed.value);
+      if (entity.stats.turn.isMax()) {
+        result = entity;
+        break;
+      }
+    }
+    return result;
+  },
+
+  /**
+   * Checks to see if there is already a winning entity in the game.
+   *
+   * @method evaluateEntities
+   * @returns null
+   */
+  evaluateEntities: function() {
+    var enabled = [];
+    var disabled = [];
+    this.entities.each(function(entity) {
+      if (entity.stats.health.isEmpty()) {
+        disabled.push(entity);
+      } else {
+        enabled.push(entity);
+      }
+    });
+    if (enabled.length <= 1) {
+      this.hasWinner(enabled[0]);
+    } else {
+      this.hasNoWinnerYet();
+    }
+  },
+
+  /**
+   * Finds the nearest entities based on closed proximity.
+   *
+   * @method promixity
+   * @param {Hiraya.EntityTurnBased} entity
+   * @param {String} [by=null]
+   * @returns {Array}
+   */
+  proximity: function(entity, by) {
+    var distances = [],
+      entities = [],
+      tiles,
+      radius = Math.floor(this.tiles.columns * 0.5)
+    ;
+    if (by === 'range') {
+      radius = entity.stats.range.value;
+    }
+    tiles = this.tiles.range(entity.tile, radius, true);
+    for(var i=0,len=tiles.length; i<len; i++) {
+      var tile = tiles[i];
+      var occupant = tile.entities[0];
+      if (occupant && occupant !== entity) {
+        if (occupant.stats.health.isEmpty()) {
+          continue;
+        }
+        var distance = Math.abs(occupant.tile.x - entity.tile.x + occupant.tile.y - entity.tile.y);
+        var index = 0;
+        for(var ii=0, llen=distances.length; ii<llen; ii++) {
+          if (distance < distances[ii]) {
+            index = ii;
+            break;
+          }
+        }
+        distances.splice(index, 0, distance);
+        entities.splice(index, 0, occupant);
+      }
+    }
+    return entities;
+  },
+
+  /**
+   * Gets the nearest tile of an entity from a tile. Basic path finding helper in finding
+   *
+   * @method nearestEntityTileFrom
+   * @param {Hiraya.Entity} entity
+   * @returns {Hiraya.Tile}
+   */
+  nearestEntityTileFrom: function(entity, tile) {
+    var proximity = this.proximity(entity);
+    var target = proximity[0];
+    var nearest;
+    if (target) {
+      nearest = entity.tile.nearest(this.tiles.adjacent(target.tile));
+    }
+    return nearest;
+  },
+
+  /**
+   * Fired when an entity reaches its max `.stats.turnspeed` value.
+   *
+   * @event gotTurn
+   * @param {Hiraya.EntityTurnBased} entity
+   */
+  gotTurn: function(entity) {
+  },
+
+  /**
+   * Fired when a winner has been announced after performing a `.evaluateEntities()` function.
+   *
+   * @event hasWinner
+   * @param {Hiraya.EntityTurnBased} entity
+   */
+  hasWinner: function(entity) {
+  },
+
+  /**
+   * Fired when there is no winner yet after performing a `.evaluateEntities()` function.
+   *
+   * @event hasNoWinnerYet
+   */
+  hasNoWinnerYet: function() {
+  },
+
+  /**
+   * Fired when attempts in finding an entity to take its turn has reached its maximum number of tries.
+   *
+   * @event getTurnTimedOut
+   */
+  getTurnTimedOut: function() {
+  }
+});
+
+
+module.exports = LevelTurnBased;
+
+},{"./level":12,"./entity-turnbased":7}],16:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -1963,5 +1966,5 @@ var GetterSetter = Emitter.extend({
 
 module.exports = GetterSetter;
 
-},{"./emitter":2}]},{},[1])
+},{"./emitter":3}]},{},[1])
 ;

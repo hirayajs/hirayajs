@@ -44,6 +44,7 @@ var Level = GetterSetter.extend({
    * @event ready
    */
   ready: function() {
+    this.emit('ready');
   },
 
   /**
@@ -86,6 +87,7 @@ var Level = GetterSetter.extend({
 
     this.entities.add(entity);
     this.addedEntity(entity);
+    this.emit('entity:add', entity);
     return this;
   },
 

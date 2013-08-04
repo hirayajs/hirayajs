@@ -190,7 +190,7 @@
               turnspeed: [20]
             }
           });
-          expect(level.entities.at(0).stats.turn.value).to.be(100);
+          expect(level.entities.at(0).stats.turn.value).to.be(0);
           return expect(level.entities.at(1).stats.turnspeed.value).to.be(20);
         });
       });

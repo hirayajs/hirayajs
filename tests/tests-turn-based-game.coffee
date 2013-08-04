@@ -157,11 +157,9 @@ describe.only 'An automated game test', ->
         target = target[0]
         if target
           entity.attack target
-          console.log 'tarrggget', target.name
         else
           nearestEntityTileFrom = @nearestEntityTileFrom entity
           nearestEntityTileFrom .occupy entity
-          console.log 'moving to nearest entity', nearestEntityTileFrom.json()
         do @evaluateEntities
         ##attackRange = @tiles.range entity.tile, entity.stats.range.value
         ##moveRange = @tiles.range entity.tile, entity.stats.steps.value
@@ -176,7 +174,6 @@ describe.only 'An automated game test', ->
           #  do @evaluateEntities
           #, 100
       hasWinner: (entity) ->
-        console.log 'winner is:', entity
         done()
       hasNoWinnerYet: ->
         do @getTurn

@@ -38,6 +38,7 @@ var Game = Emitter.extend({
    * @default Hiraya.Level
    */
   Level: Level,
+
   start: function() {
     var _this = this;
     this._paths = {};

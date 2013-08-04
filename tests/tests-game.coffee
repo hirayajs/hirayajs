@@ -116,7 +116,7 @@ describe 'hiraya-game', ->
           name: 'entity-2'
           stats:
             turnspeed: [20]
-        expect(level.entities.at(0).stats.turn.value).to.be(100)
+        expect(level.entities.at(0).stats.turn.value).to.be(0)
         expect(level.entities.at(1).stats.turnspeed.value).to.be(20)
     describe '#getTurn(fn)', ->
       it 'should be able to calculate turns and reset the turn stat of the active entity to 0', (done) ->
