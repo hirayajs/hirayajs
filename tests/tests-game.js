@@ -163,35 +163,40 @@
           return expect(level.entities.length).to.be(0);
         });
       });
-      return describe('#addEntity(attributes)', function() {
+      return describe('#createEntity(attributes)', function() {
         return it('should create an entity based on attributes', function() {
-          var attributes;
+          var attributes, entity;
           attributes = {
             stats: {
               health: [100, 100]
             }
           };
-          level.addEntity(attributes);
-          return expect(level.entities.at(0).stats.health.value).to.be(attributes.stats.health[0]);
+          entity = level.createEntity(attributes);
+          return expect(entity.stats.health.value).to.be(attributes.stats.health[0]);
         });
       });
     });
     return describe('Hiraya.LevelTurnBased', function() {
       var level;
       level = Hiraya.LevelTurnBased.create();
-      describe('#addEntity(attributes)', function() {
+      describe('#addEntity(entity)', function() {
         return it('should be able to add an entity with a default turn and turnspeed attribute', function() {
-          level.addEntity({
-            name: 'entity-1'
-          });
-          level.addEntity({
-            name: 'entity-2',
+          level.addEntity(level.createEntity({
+            id: 'entity-0'
+          }));
+          level.addEntity(level.createEntity({
+            id: 'entity-1',
             stats: {
               turnspeed: [20]
             }
-          });
+          }));
           expect(level.entities.at(0).stats.turn.value).to.be(0);
           return expect(level.entities.at(1).stats.turnspeed.value).to.be(20);
+        });
+      });
+      describe('#getEntity(id)', function() {
+        return it('should be able to retrieve an entity by ID', function() {
+          return expect(level.getEntity('entity-0')).to.be.ok();
         });
       });
       describe('#getTurn(fn)', function() {
@@ -203,20 +208,20 @@
               }
             }
           };
-          level.addEntity({
-            name: 'entity-1',
+          level.addEntity(level.createEntity({
+            id: 'entity-1',
             stats: {
               turn: [0, 100],
               turnspeed: [10]
             }
-          });
-          level.addEntity({
-            name: 'entity-2',
+          }));
+          level.addEntity(level.createEntity({
+            id: 'entity-2',
             stats: {
               turn: [0, 100],
               turnspeed: [20]
             }
-          });
+          }));
           return level.getTurn();
         });
       });

@@ -17,7 +17,7 @@ describe.skip 'Turn-based game test suite', ->
       Game = Hiraya.Game.create()
       Game.Level = Hiraya.LevelTurnBased.extend
         ready: ->
-          @addEntity
+          @addEntity @createEntity
             name: 'Marine'
             stats:
               health: [400,1000]
@@ -31,7 +31,7 @@ describe.skip 'Turn-based game test suite', ->
           rows: 10
           columns: 10
         ready: ->
-          @addEntity
+          @addEntity @createEntity
             name: 'Marine'
             tile:
               x: 9
@@ -60,10 +60,10 @@ describe.skip 'Turn-based game test suite', ->
       Game = Hiraya.Game.create()
       Game.Level = Hiraya.LevelTurnBased.extend
         ready: ->
-          @addEntity
+          @addEntity @createEntity
             stats: health: [1], attack: [1]
             tile: x: 0, y: 1
-          @addEntity
+          @addEntity @createEntity
             stats: health: [1], attack: [1]
             tile: x: 0, y: 0
           hero = @entities.at 0
@@ -76,7 +76,7 @@ describe.skip 'Turn-based game test suite', ->
       Game = Hiraya.Game.create()
       Game.Level = Hiraya.LevelTurnBased.extend
         ready: ->
-          @addEntity
+          @addEntity @createEntity
             tile: x: 0, y: 0
           entity = @entities.at 0
           expect(entity.stats.steps).to.be.ok()
@@ -90,10 +90,10 @@ describe.skip 'Turn-based game test suite', ->
       Game.Level = Hiraya.LevelTurnBased.extend
         minEntities: 2
         ready: ->
-          @addEntity
+          @addEntity @createEntity
             stats: health: [1], attack: [1]
             tile: x: 0, y: 0
-          @addEntity
+          @addEntity @createEntity
             stats: health: [1], attack: [1]
             tile: x: 1, y: 0
         addedEntity: ->
@@ -107,10 +107,10 @@ describe.skip 'Turn-based game test suite', ->
       Game.Level = Hiraya.LevelTurnBased.extend
         minEntities: 2
         ready: ->
-          @addEntity
+          @addEntity @createEntity
             stats: health: [1], attack: [1]
             tile: x: 0, y: 0
-          @addEntity
+          @addEntity @createEntity
             stats: health: [1], attack: [1]
             tile: x: 1, y: 0
         addedEntity: ->
@@ -128,18 +128,18 @@ describe.only 'An automated game test', ->
       minEntities: 3
       _tickSpeed: 0,
       ready: ->
-        @addEntity
-          name: 'marine'
+        @addEntity @createEntity
+          id: 'marine'
           auto: true
           stats: health: [10], attack: [0], turnspeed: [0]
           tile: x: 0, y: 0
-        @addEntity
-          name: 'marine-2'
+        @addEntity @createEntity
+          id: 'marine-2'
           auto: true
           stats: health: [10], attack: [0], turnspeed: [0]
           tile: x: 1, y: 1
-        @addEntity
-          name: 'vanguard'
+        @addEntity @createEntity
+          id: 'vanguard'
           auto: true
           stats: health: [10], attack: [1], range: [1]
           tile: x: 5, y: 3
@@ -159,7 +159,7 @@ describe.only 'An automated game test', ->
           entity.attack target
         else
           nearestEntityTileFrom = @nearestEntityTileFrom entity
-          nearestEntityTileFrom .occupy entity
+          nearestEntityTileFrom.occupy entity
         do @evaluateEntities
         ##attackRange = @tiles.range entity.tile, entity.stats.range.value
         ##moveRange = @tiles.range entity.tile, entity.stats.steps.value

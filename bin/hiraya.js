@@ -1610,10 +1610,32 @@ var Level = GetterSetter.extend({
    */
   entities: null,
 
+  /**
+   * The Entity class for this level
+   * @property Entity
+   * @type {Hiraya.Entity}
+   */
   Entity: Entity,
 
+  /**
+   * Dictionary of all the entities in this level
+   * @property _entityIDs
+   * @type {Object}
+   * @private
+   */
+  _entityIDs: {},
+
+  /**
+   * The Tiles class for this level
+   * @property Tiles
+   * @type {Hiraya.Tiles}
+   */
   Tiles: Tiles,
 
+  /**
+   * Initialization
+   * @method init
+   */
   init: function() {
     this.tiles = this.Tiles.create();
     this.entities = Collection.create();
@@ -1631,47 +1653,59 @@ var Level = GetterSetter.extend({
   },
 
   /**
-   * Adds an entity into the collection based on attributes.
+   * Adds an entity into the collection.
    *
    * Following is an example format:
    *
-   *     level.addEntity({
+   *     var entity = level.createEntity({
    *       name: 'Swordsman',
    *       stats: {
    *         health: [500, 1000] // value, max
    *         attack: [100] // value, max
    *       }
-   *     })
+   *     });
+   *     level.addEntity(entity);
    *
    * @method addEntity
-   * @param {Object} attributes
+   * @param {Hiraya.Entity} entity
    * @chainable
    */
-  addEntity: function(attributes) {
+  addEntity: function(entity) {
     // attributes.stats gets overwritten in library
-    var entity, stats, tile;
-    entity = this.createEntity(attributes);
-    stats = attributes.stats;
-    if (typeof stats === 'object') {
-      for (var key in stats) {
-        if (stats.hasOwnProperty(key)) {
-          var stat = stats[key];
-          entity.stats.set(key, stat[0], stat[1]);
-        }
-      }
-    }
-
-    if (typeof attributes.tile === 'object') {
-      tile = this.tiles.get(attributes.tile.x, attributes.tile.y);
-      if (tile) {
-        tile.occupy(entity);
-      }
-    }
-
     this.entities.add(entity);
     this.addedEntity(entity);
-    this.emit('entity:add', entity);
+    if (entity.id) {
+      this._entityIDs[entity.id] = entity;
+    }
+    //this.emit('entity:add', entity);
     return this;
+  },
+
+  /**
+   * Removes an entity from the level.
+   *
+   * @method removeEntity
+   * @param {Hiraya.Entity} entity
+   * @chainable
+   */
+  removeEntity: function(entity) {
+    if (entity) {
+      this.entities.remove(entity);
+      if (this._entityIDs[entity.id] === entity) {
+        delete this._entityIDs[entity.id];
+      }
+    }
+    return this;
+  },
+
+  /**
+   * Retrieves an entity based on ID
+   *
+   * @method getEntity
+   * @param {String} id
+   */
+  getEntity: function(id) {
+    return this._entityIDs[id];
   },
 
   /**
@@ -1682,7 +1716,35 @@ var Level = GetterSetter.extend({
    * @returns Hiraya.Entity
    */
   createEntity: function(attributes) {
-    return this.Entity.create(attributes);
+    var clone = JSON.parse(JSON.stringify(attributes));
+    var stats = attributes.stats;
+    var tile = attributes.tile;
+
+    delete clone.stats;
+    delete clone.tile;
+    var entity = this.Entity.create(clone);
+
+    // attribute parsing
+    if (attributes) {
+      // parse stats
+      if (stats) {
+        for (var key in stats) {
+          if (stats.hasOwnProperty(key)) {
+            var stat = stats[key];
+            entity.stats.set(key, stat[0], stat[1]);
+          }
+        }
+      }
+      // parse tile position of the entity
+      if (tile) {
+        var entityTile = this.tiles.get(tile.x, tile.y);
+        if (entityTile) {
+          entityTile.occupy(entity);
+        }
+      }
+    }
+
+    return entity;
   },
 
   /**

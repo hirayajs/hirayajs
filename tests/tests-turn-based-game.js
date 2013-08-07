@@ -27,12 +27,12 @@
         Game = Hiraya.Game.create();
         Game.Level = Hiraya.LevelTurnBased.extend({
           ready: function() {
-            this.addEntity({
+            this.addEntity(this.createEntity({
               name: 'Marine',
               stats: {
                 health: [400, 1000]
               }
-            });
+            }));
             expect(this.entities.at(0).stats.health.value).to.be(400);
             return expect(this.entities.at(0).stats.health.max).to.be(1000);
           }
@@ -48,13 +48,13 @@
             columns: 10
           }),
           ready: function() {
-            this.addEntity({
+            this.addEntity(this.createEntity({
               name: 'Marine',
               tile: {
                 x: 9,
                 y: 9
               }
-            });
+            }));
             return expect(this.tiles.get(9, 9).isOccupied()).to.be.ok();
           }
         });
@@ -93,7 +93,7 @@
         Game.Level = Hiraya.LevelTurnBased.extend({
           ready: function() {
             var enemy, hero;
-            this.addEntity({
+            this.addEntity(this.createEntity({
               stats: {
                 health: [1],
                 attack: [1]
@@ -102,8 +102,8 @@
                 x: 0,
                 y: 1
               }
-            });
-            this.addEntity({
+            }));
+            this.addEntity(this.createEntity({
               stats: {
                 health: [1],
                 attack: [1]
@@ -112,7 +112,7 @@
                 x: 0,
                 y: 0
               }
-            });
+            }));
             hero = this.entities.at(0);
             enemy = this.entities.at(1);
             hero.attack(enemy);
@@ -129,12 +129,12 @@
         Game.Level = Hiraya.LevelTurnBased.extend({
           ready: function() {
             var entity;
-            this.addEntity({
+            this.addEntity(this.createEntity({
               tile: {
                 x: 0,
                 y: 0
               }
-            });
+            }));
             entity = this.entities.at(0);
             expect(entity.stats.steps).to.be.ok();
             expect(entity.stats.range).to.be.ok();
@@ -152,7 +152,7 @@
         Game.Level = Hiraya.LevelTurnBased.extend({
           minEntities: 2,
           ready: function() {
-            this.addEntity({
+            this.addEntity(this.createEntity({
               stats: {
                 health: [1],
                 attack: [1]
@@ -161,8 +161,8 @@
                 x: 0,
                 y: 0
               }
-            });
-            return this.addEntity({
+            }));
+            return this.addEntity(this.createEntity({
               stats: {
                 health: [1],
                 attack: [1]
@@ -171,7 +171,7 @@
                 x: 1,
                 y: 0
               }
-            });
+            }));
           },
           addedEntity: function() {
             if (this.entities.length >= this.minEntities) {
@@ -190,7 +190,7 @@
         Game.Level = Hiraya.LevelTurnBased.extend({
           minEntities: 2,
           ready: function() {
-            this.addEntity({
+            this.addEntity(this.createEntity({
               stats: {
                 health: [1],
                 attack: [1]
@@ -199,8 +199,8 @@
                 x: 0,
                 y: 0
               }
-            });
-            return this.addEntity({
+            }));
+            return this.addEntity(this.createEntity({
               stats: {
                 health: [1],
                 attack: [1]
@@ -209,7 +209,7 @@
                 x: 1,
                 y: 0
               }
-            });
+            }));
           },
           addedEntity: function() {
             if (this.entities.length >= this.minEntities) {
@@ -236,8 +236,8 @@
         minEntities: 3,
         _tickSpeed: 0,
         ready: function() {
-          this.addEntity({
-            name: 'marine',
+          this.addEntity(this.createEntity({
+            id: 'marine',
             auto: true,
             stats: {
               health: [10],
@@ -248,9 +248,9 @@
               x: 0,
               y: 0
             }
-          });
-          this.addEntity({
-            name: 'marine-2',
+          }));
+          this.addEntity(this.createEntity({
+            id: 'marine-2',
             auto: true,
             stats: {
               health: [10],
@@ -261,9 +261,9 @@
               x: 1,
               y: 1
             }
-          });
-          return this.addEntity({
-            name: 'vanguard',
+          }));
+          return this.addEntity(this.createEntity({
+            id: 'vanguard',
             auto: true,
             stats: {
               health: [10],
@@ -274,7 +274,7 @@
               x: 5,
               y: 3
             }
-          });
+          }));
         },
         addedEntity: function(entity) {
           if (this.entities.length === this.minEntities) {

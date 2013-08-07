@@ -5,7 +5,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-jshint');
-
+  grunt.loadNpmTasks('grunt-mocha-test');
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -52,9 +52,13 @@ module.exports = function(grunt) {
     },
 
     watch: {
+      all: {
+        files: ['src/**/*.js'],
+        tasks: ['jshint', 'browserify', 'test', 'docs']
+      },
       scripts: {
         files: ['src/**/*.js'],
-        tasks: ['dev']
+        tasks: ['browserify']
       },
       docs: {
         files: ['src/**/*.js'],
@@ -63,12 +67,38 @@ module.exports = function(grunt) {
       jshint: {
         files: ['src/**/*.js'],
         tasks: ['jshint']
+      },
+      tests: {
+        files: ['src/**/*.js'],
+        tasks: ['test']
       }
     },
 
+    mochaTest: {
+      simple: {
+        src: ['tests/tests.js'],
+        options: {
+          reporter: 'spec'
+        }
+      },
+      game: {
+        src: ['tests/tests-game.js'],
+        options: {
+          reporter: 'spec'
+        }
+      },
+      turnbased: {
+        src: ['tests/tests-turn-based-game.js'],
+        options: {
+          reporter: 'spec'
+        }
+      }
+    }
+
   });
   grunt.registerTask('server', 'connect:server');
+  grunt.registerTask('develop', ['watch:all']);
   grunt.registerTask('default', ['jshint', 'browserify:main', 'uglify:build', 'yuidoc']);
-  grunt.registerTask('dev', 'browserify');
   grunt.registerTask('docs', 'yuidoc');
+  grunt.registerTask('test', ['mochaTest:simple', 'mochaTest:game', 'mochaTest:turnbased']);
 };

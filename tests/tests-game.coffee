@@ -100,37 +100,41 @@ describe 'hiraya-game', ->
     describe '#entities', ->
       it 'should be able to handle entities', ->
         expect(level.entities.length).to.be(0)
-    describe '#addEntity(attributes)', ->
+    describe '#createEntity(attributes)', ->
       it 'should create an entity based on attributes', ->
         attributes = stats:
           health: [100,100]
-        level.addEntity attributes
-        expect(level.entities.at(0).stats.health.value).to.be(attributes.stats.health[0])
+        entity = level.createEntity attributes
+        expect(entity.stats.health.value).to.be(attributes.stats.health[0])
   describe 'Hiraya.LevelTurnBased', ->
     level = Hiraya.LevelTurnBased.create()
-    describe '#addEntity(attributes)', ->
+    describe '#addEntity(entity)', ->
       it 'should be able to add an entity with a default turn and turnspeed attribute', ->
-        level.addEntity
-          name: 'entity-1'
-        level.addEntity
-          name: 'entity-2'
+        level.addEntity level.createEntity
+          id: 'entity-0'
+        level.addEntity level.createEntity
+          id: 'entity-1'
           stats:
             turnspeed: [20]
         expect(level.entities.at(0).stats.turn.value).to.be(0)
         expect(level.entities.at(1).stats.turnspeed.value).to.be(20)
+    describe '#getEntity(id)', ->
+      it 'should be able to retrieve an entity by ID', ->
+        expect(level.getEntity('entity-0')).to.be.ok()
+        
     describe '#getTurn(fn)', ->
       it 'should be able to calculate turns and reset the turn stat of the active entity to 0', (done) ->
         level.gotTurn = (entityTurnBased) ->
           if entityTurnBased
             if entityTurnBased.stats.turn.isEmpty()
               done()
-        level.addEntity
-          name: 'entity-1'
+        level.addEntity level.createEntity
+          id: 'entity-1'
           stats:
             turn: [0,100]
             turnspeed: [10]
-        level.addEntity
-          name: 'entity-2'
+        level.addEntity level.createEntity
+          id: 'entity-2'
           stats:
             turn: [0,100]
             turnspeed: [20]
