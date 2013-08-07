@@ -133,6 +133,7 @@ var Level = GetterSetter.extend({
    * @returns Hiraya.Entity
    */
   createEntity: function(attributes) {
+    // create a clone of the attribute object
     var clone = JSON.parse(JSON.stringify(attributes));
     var stats = attributes.stats;
     var tile = attributes.tile;
