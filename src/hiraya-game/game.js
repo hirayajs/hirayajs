@@ -36,6 +36,7 @@ var Game = Emitter.extend({
    * @property Level
    * @type {Level}
    * @default Hiraya.Level
+   * @return this
    */
   Level: Level,
 
@@ -44,9 +45,11 @@ var Game = Emitter.extend({
     this._paths = {};
     this._paths.level = this.Level.create();
     if (this.Canvas && typeof this.Canvas.create === 'function') {
-      this.Canvas.create({ level: this.paths('level') });
+      this._paths.canvas = this.Canvas.create();
+      this._paths.level.canvas = this._paths.canvas;
     }
     this.ready();
+    return this;
   },
   paths: function(path) {
     return this._paths[path];

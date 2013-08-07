@@ -15,7 +15,8 @@ var Hiraya = {
   Level: require('./hiraya-game/level'),
   LevelTurnBased: require('./hiraya-game/level-turnbased'),
   /** hiraya-game/display **/
-  Canvas: require('./hiraya-view/canvas')
+  Canvas: require('./hiraya-view/canvas'),
+  Sprite: require('./hiraya-view/sprite')
 };
 
 if (typeof window === 'object') {
@@ -24,7 +25,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13,"./hiraya-view/canvas":14}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13,"./hiraya-view/canvas":14,"./hiraya-view/sprite":15}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -183,7 +184,7 @@ var Class = extendClass(function(){}, {});
 
 module.exports = Class;
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -237,7 +238,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 (function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
 
 var EventEmitter = exports.EventEmitter = process.EventEmitter;
@@ -423,7 +424,7 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 })(require("__browserify_process"))
-},{"__browserify_process":15}],3:[function(require,module,exports){
+},{"__browserify_process":16}],3:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -540,7 +541,7 @@ var Emitter = Class.extend({
 
 module.exports = Emitter;
 
-},{"events":16,"./class":2}],4:[function(require,module,exports){
+},{"events":17,"./class":2}],4:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -668,22 +669,7 @@ var Collection = Emitter.extend({
 
 module.exports = Collection;
 
-},{"./emitter":3}],7:[function(require,module,exports){
-var Entity = require('./entity');
-
-var EntityTurnBased = Entity.extend({
-  init: function() {
-    this.parent();
-    this.stats.set('turn', 0, 100);
-    this.stats.set('steps', 1);
-    this.stats.set('range', 2);
-    this.stats.set('turnspeed', 10);
-  }
-});
-
-module.exports = EntityTurnBased;
-
-},{"./entity":8}],5:[function(require,module,exports){
+},{"./emitter":3}],5:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -914,72 +900,22 @@ var Stats = Class.extend({
 
 module.exports = Stats;
 
-},{"../hiraya-core/class":2,"./stat":5}],9:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
+},{"../hiraya-core/class":2,"./stat":5}],7:[function(require,module,exports){
+var Entity = require('./entity');
 
-
-
-var Emitter = require('../hiraya-core/emitter');
-var Level = require('../hiraya-game/level');
-var Tiles = require('../hiraya-game/tiles');
-
-/**
- * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
- * as well as reference to instantiated objects that the Hiraya framework provides.
- *
- *     Game = Hiraya.Game.create();
- *     Game.start(); // Game does its work like preloading assets, initializing classes, etc.
- *
- * @class Game
- * @extends Hiraya.Class
- * @namespace Hiraya
- */
-var Game = Emitter.extend({
-  /**
-   * Path dictionary
-   *
-   * @property paths
-   * @type {Object}
-   * @private
-   */
-  _paths: {},
-
-  /**
-   * The base level class of the game
-   *
-   * @property Level
-   * @type {Level}
-   * @default Hiraya.Level
-   */
-  Level: Level,
-
-  start: function() {
-    var _this = this;
-    this._paths = {};
-    this._paths.level = this.Level.create();
-    if (this.Canvas && typeof this.Canvas.create === 'function') {
-      this.Canvas.create({ level: this.paths('level') });
-    }
-    this.ready();
-  },
-  paths: function(path) {
-    return this._paths[path];
-  },
-  /**
-   * The `ready` event fires when the window is ready and all the assets are loaded
-   *
-   * @event ready
-   */
-  ready: function() {
+var EntityTurnBased = Entity.extend({
+  init: function() {
+    this.parent();
+    this.stats.set('turn', 0, 100);
+    this.stats.set('steps', 1);
+    this.stats.set('range', 2);
+    this.stats.set('turnspeed', 10);
   }
 });
 
-module.exports = Game;
+module.exports = EntityTurnBased;
 
-},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],8:[function(require,module,exports){
+},{"./entity":8}],8:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1065,7 +1001,75 @@ Entity.id = 0;
 
 module.exports = Entity;
 
-},{"../hiraya-core/getter-setter":17,"./stats":6}],10:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":18,"./stats":6}],9:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
+
+var Emitter = require('../hiraya-core/emitter');
+var Level = require('../hiraya-game/level');
+var Tiles = require('../hiraya-game/tiles');
+
+/**
+ * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
+ * as well as reference to instantiated objects that the Hiraya framework provides.
+ *
+ *     Game = Hiraya.Game.create();
+ *     Game.start(); // Game does its work like preloading assets, initializing classes, etc.
+ *
+ * @class Game
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Game = Emitter.extend({
+  /**
+   * Path dictionary
+   *
+   * @property paths
+   * @type {Object}
+   * @private
+   */
+  _paths: {},
+
+  /**
+   * The base level class of the game
+   *
+   * @property Level
+   * @type {Level}
+   * @default Hiraya.Level
+   * @return this
+   */
+  Level: Level,
+
+  start: function() {
+    var _this = this;
+    this._paths = {};
+    this._paths.level = this.Level.create();
+    if (this.Canvas && typeof this.Canvas.create === 'function') {
+      this._paths.canvas = this.Canvas.create();
+      this._paths.level.canvas = this._paths.canvas;
+    }
+    this.ready();
+    return this;
+  },
+  paths: function(path) {
+    return this._paths[path];
+  },
+  /**
+   * The `ready` event fires when the window is ready and all the assets are loaded
+   *
+   * @event ready
+   */
+  ready: function() {
+  }
+});
+
+module.exports = Game;
+
+},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1766,7 +1770,7 @@ var Level = GetterSetter.extend({
 
 module.exports = Level;
 
-},{"../hiraya-core/getter-setter":17,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":18,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -2034,12 +2038,53 @@ var Canvas = Emitter.extend({
 
 
   /**
+   * The createjs.Ticker static class
+   *
+   * @property _ticker
+   * @type {createjs.Ticker}
+   * @private
+   */
+  _ticker: null,
+
+  /**
    * `Hiraya.Level` instance that is given by the Game object.
    *
    * @property level
    * @type {Hiraya.Level}
    */
   level: null,
+
+  /**
+   * The layer structure of the canvas. Useful for separating tiles, sprites, foreground
+   * and background to name a few. Layer names listed in order will be generated accordingly.
+   *
+   *     Hiraya.Canvas.extend({
+   *      layers: [
+   *        'background',
+   *        'tiles',
+   *        'sprites',
+   *        'foreground'
+   *      ];
+   *     })
+   *
+   *
+   * @property layers
+   * @type {Array}
+   */
+  layers: [
+    'background',
+    'tiles',
+    'sprites',
+    'foreground'
+  ],
+
+  /**
+   * 
+   *
+   * @property sprites
+   * @type {Array}
+   */
+  sprites: [],
 
   init: function() {
     this.parent();
@@ -2049,15 +2094,236 @@ var Canvas = Emitter.extend({
     canvas.id = this.id;
     document.body.appendChild(canvas);
     this._stage = new createjs.Stage(canvas);
-    console.log('level', this.level);
-  }
+    this._ticker = createjs.Ticker;
 
+    var stage = this._stage;
+    var ticker = this._ticker;
+
+    if (this.layers && typeof this.layers.forEach === 'function') {
+      this.layers.forEach(function(layerName, i) {
+        var layer = new createjs.Container();
+        layer.name = layerName;
+        stage.addChild(layer);
+      });
+    }
+
+    ticker.addEventListener('tick', this.render.bind(this));
+  },
+
+  /**
+   * Renders the canvas operation.
+   *
+   * @method render
+   * @private
+   */
+  render: function() {
+    this._stage.update();
+  },
+
+  /**
+   * Pause the render operation.
+   * @method pause 
+   * @param {Boolean} shouldPause if set to false, will reverse the pause command.
+   */
+  pause: function(shouldPause) {
+    this._ticker.setPaused(shouldPause);
+  },
+
+  /**
+   * @method addSprite
+   * @param {Hiraya.Sprite} sprite
+   * @chainable
+   */
+  addSprite: function(sprite) {
+    var layer = this._stage.getChildByName('sprites') || this._stage;
+    layer.addChild(sprite.view);
+    sprite.spawn();
+    return this;
+  }
 
 });
 
 module.exports = Canvas;
 
-},{"../hiraya-core/emitter":3}],17:[function(require,module,exports){
+},{"../hiraya-core/emitter":3}],15:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-view
+ */
+
+/**
+ * Canvas manages the stage and all things happening in them.
+ *
+ * @class Sprite
+ * @extends Hiraya.Emitter
+ * @namespace Hiraya
+ */
+var Emitter = require('../hiraya-core/emitter');
+var Sprite = Emitter.extend({
+
+  /**
+   * Sprite sheet frameData for the createjs.SpriteSheet class.
+   *
+   * @property sheetData
+   * @type {Object}
+   */
+  sheetData: null,
+
+  /**
+   * Image resource to be used for the sprite object.
+   *
+   * @property image
+   * @type {Image}
+   */
+  image: null,
+
+  /**
+   * The display object container for the sprite sheet animation and image.
+   *
+   * @property view
+   * @type {createjs.BitmapAnimation} 
+   */
+  view: null,
+
+  init: function() {
+    this.view = new createjs.Container();
+    if (this.name) {
+      this.view.name = this.name;
+    }
+
+    if (typeof this.frameData === 'object') {
+      var animation = new createjs.BitmapAnimation(new createjs.SpriteSheet(this.frameData));
+      animation.name = 'animation';
+      this.view.addChild(animation);
+
+    }
+
+    if (this.image instanceof Image) {
+      var bitmap = new createjs.Bitmap(image);
+      bitmap.name = 'image';
+      this.view.addChild(bitmap);
+    }
+
+  },
+
+  /**
+   * Play the animation based on the key frame in the sprite's frame data.
+   *
+   * @method play
+   * @param {String} frameLabel
+   */
+  play: function(frameLabel) {
+    var animation = this.view.getChildByName('animation');
+    if (animation) {
+      animation.gotoAndPlay(frameLabel);
+    }
+  },
+
+  /**
+   * Set the x coordinate of this sprite
+   *
+   * @method x
+   * @param {Number} x
+   * @chainable
+   */
+  x: function(x) {
+    this.view.x = x;
+    return this;
+  },
+
+  /**
+   * Set the y coordinate of this sprite
+   *
+   * @method y
+   * @param {Number} y
+   * @chainable
+   */
+  y: function(y) {
+    this.view.y = y;
+    return this;
+  },
+
+  /**
+   * Sets the x and y coordinate of this sprite
+   *
+   * @method pos
+   * @param {Number} x
+   * @param {Number} y
+   * @chainable
+   */
+  pos: function(x, y) {
+    this.x(x);
+    this.y(y);
+    return this;
+  },
+
+  /**
+   * Seeks the frame animation label then stop.
+   *
+   * @method playStop
+   * @param {String} frameLabel
+   */
+  playStop: function(frameLabel) {
+    var animation = this.view.getChildByName('animation');
+    if (animation) {
+      animation.gotoAndStop(frameName);
+    }
+  },
+
+  /**
+   * Stop any animation.
+   *
+   * @method stop
+   */
+  stop: function() {
+    var animation = this.view.getChildByName('animation');
+    if (animation) {
+      animation.stop();
+    }
+  },
+
+  /**
+   * An event hook that's fired when the sprite is added to the canvas.
+   *
+   * @event spawn
+   *
+   */
+  spawn: function() {
+  },
+
+  /**
+   * An event hook that's fired when the sprite starts moving.
+   *
+   * @event moveStart
+   */
+  moveStart: function() {
+  },
+
+  /**
+   * An event hook that's fired when the sprite stops moving.
+   *
+   * @event moveEnd
+   */
+  moveEnd: function() {
+  },
+
+  /**
+   * An event hook that's fired when the sprite starts attacking.
+   * Optionally, the name of the attack can be passed here to
+   * let the sprite know which animation to play.
+   *
+   * @event attackStart
+   * @param {String} name
+   * @optional
+   */
+  attackStart: function(name) {
+  }
+});
+
+
+module.exports = Sprite;
+
+},{"../hiraya-core/emitter":3}],18:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
