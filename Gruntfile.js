@@ -26,6 +26,7 @@ module.exports = function(grunt) {
         }
       }
     },
+
     connect: {
       server: {
         options: {
@@ -43,10 +44,15 @@ module.exports = function(grunt) {
         }
       }
     },
+
     browserify: {
       main: {
         src: ['src/index.js'],
         dest: 'bin/hiraya.js'
+      },
+      view: {
+        src: ['src/index-client.js'],
+        dest: 'bin/hiraya-client.js'
       }
       //'bin/hiraya.js': 'src/index.js'
     },
@@ -96,6 +102,7 @@ module.exports = function(grunt) {
     }
 
   });
+
   grunt.registerTask('server', 'connect:server');
   grunt.registerTask('develop', ['watch:all']);
   grunt.registerTask('default', ['jshint', 'browserify:main', 'uglify:build', 'yuidoc']);

@@ -4,9 +4,7 @@
  */
 
 var Emitter = require('../hiraya-core/emitter');
-var $ = window.jQuery;
-var createjs = window.createjs;
-
+var createjs = typeof window === 'object' ? window.createjs : null;
 
 /**
  * Canvas manages the stage and all things happening in them.
@@ -44,14 +42,6 @@ var Canvas = Emitter.extend({
   height: 500,
 
   /**
-   * jQuery node equivalent of the canvas container
-   *
-   * @property $
-   * @type {jQuery}
-   */
-  $: null,
-
-  /**
    * The `createjs.Stage` instance.
    *
    * @property _stage
@@ -69,29 +59,17 @@ var Canvas = Emitter.extend({
    */
   level: null,
 
-  _paths: {},
-
   init: function() {
     this.parent();
-    this.$ = $('#' + this.id);
-    this._paths = {};
-    var canvas = $('<canvas>').attr({ width: this.width, height: this.height });
-    this.$.append(canvas);
-    this._stage = new createjs.Stage(canvas.get(0));
-    this.level.on('ready', this._levelEvents.bind(this));
-  },
-
-  _levelEvents: function() {
-    console.log('yoo');
-  },
-
-  addLayer: function(name) {
-    this._paths['layers:' + name] = new createjs.Container();
-  },
-
-  getLayer: function(name) {
-    return this._paths['layers:' + name];
+    var canvas = document.createElement('canvas');
+    canvas.width = this.width;
+    canvas.height = this.height;
+    canvas.id = this.id;
+    document.body.appendChild(canvas);
+    this._stage = new createjs.Stage(canvas);
+    console.log('level', this.level);
   }
+
 
 });
 

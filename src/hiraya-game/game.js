@@ -42,7 +42,10 @@ var Game = Emitter.extend({
   start: function() {
     var _this = this;
     this._paths = {};
-    this._paths['levels:main'] = this.Level.create();
+    this._paths.level = this.Level.create();
+    if (this.Canvas && typeof this.Canvas.create === 'function') {
+      this.Canvas.create({ level: this.paths('level') });
+    }
     this.ready();
   },
   paths: function(path) {

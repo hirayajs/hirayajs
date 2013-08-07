@@ -13,8 +13,9 @@ var Hiraya = {
   Tile: require('./hiraya-game/tile'),
   Tiles: require('./hiraya-game/tiles'),
   Level: require('./hiraya-game/level'),
-  LevelTurnBased: require('./hiraya-game/level-turnbased')
+  LevelTurnBased: require('./hiraya-game/level-turnbased'),
   /** hiraya-game/display **/
+  Canvas: require('./hiraya-view/canvas')
 };
 
 if (typeof window === 'object') {
@@ -23,7 +24,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13,"./hiraya-view/canvas":14}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -182,7 +183,7 @@ var Class = extendClass(function(){}, {});
 
 module.exports = Class;
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -236,7 +237,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 (function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
 
 var EventEmitter = exports.EventEmitter = process.EventEmitter;
@@ -422,7 +423,7 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 })(require("__browserify_process"))
-},{"__browserify_process":14}],3:[function(require,module,exports){
+},{"__browserify_process":15}],3:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -539,7 +540,7 @@ var Emitter = Class.extend({
 
 module.exports = Emitter;
 
-},{"events":15,"./class":2}],4:[function(require,module,exports){
+},{"events":16,"./class":2}],4:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -667,7 +668,22 @@ var Collection = Emitter.extend({
 
 module.exports = Collection;
 
-},{"./emitter":3}],5:[function(require,module,exports){
+},{"./emitter":3}],7:[function(require,module,exports){
+var Entity = require('./entity');
+
+var EntityTurnBased = Entity.extend({
+  init: function() {
+    this.parent();
+    this.stats.set('turn', 0, 100);
+    this.stats.set('steps', 1);
+    this.stats.set('range', 2);
+    this.stats.set('turnspeed', 10);
+  }
+});
+
+module.exports = EntityTurnBased;
+
+},{"./entity":8}],5:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -898,22 +914,72 @@ var Stats = Class.extend({
 
 module.exports = Stats;
 
-},{"../hiraya-core/class":2,"./stat":5}],7:[function(require,module,exports){
-var Entity = require('./entity');
+},{"../hiraya-core/class":2,"./stat":5}],9:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
 
-var EntityTurnBased = Entity.extend({
-  init: function() {
-    this.parent();
-    this.stats.set('turn', 0, 100);
-    this.stats.set('steps', 1);
-    this.stats.set('range', 2);
-    this.stats.set('turnspeed', 10);
+
+
+var Emitter = require('../hiraya-core/emitter');
+var Level = require('../hiraya-game/level');
+var Tiles = require('../hiraya-game/tiles');
+
+/**
+ * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
+ * as well as reference to instantiated objects that the Hiraya framework provides.
+ *
+ *     Game = Hiraya.Game.create();
+ *     Game.start(); // Game does its work like preloading assets, initializing classes, etc.
+ *
+ * @class Game
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Game = Emitter.extend({
+  /**
+   * Path dictionary
+   *
+   * @property paths
+   * @type {Object}
+   * @private
+   */
+  _paths: {},
+
+  /**
+   * The base level class of the game
+   *
+   * @property Level
+   * @type {Level}
+   * @default Hiraya.Level
+   */
+  Level: Level,
+
+  start: function() {
+    var _this = this;
+    this._paths = {};
+    this._paths.level = this.Level.create();
+    if (this.Canvas && typeof this.Canvas.create === 'function') {
+      this.Canvas.create({ level: this.paths('level') });
+    }
+    this.ready();
+  },
+  paths: function(path) {
+    return this._paths[path];
+  },
+  /**
+   * The `ready` event fires when the window is ready and all the assets are loaded
+   *
+   * @event ready
+   */
+  ready: function() {
   }
 });
 
-module.exports = EntityTurnBased;
+module.exports = Game;
 
-},{"./entity":8}],8:[function(require,module,exports){
+},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],8:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -999,69 +1065,7 @@ Entity.id = 0;
 
 module.exports = Entity;
 
-},{"../hiraya-core/getter-setter":16,"./stats":6}],9:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
-
-
-
-var Emitter = require('../hiraya-core/emitter');
-var Level = require('../hiraya-game/level');
-var Tiles = require('../hiraya-game/tiles');
-
-/**
- * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
- * as well as reference to instantiated objects that the Hiraya framework provides.
- *
- *     Game = Hiraya.Game.create();
- *     Game.start(); // Game does its work like preloading assets, initializing classes, etc.
- *
- * @class Game
- * @extends Hiraya.Class
- * @namespace Hiraya
- */
-var Game = Emitter.extend({
-  /**
-   * Path dictionary
-   *
-   * @property paths
-   * @type {Object}
-   * @private
-   */
-  _paths: {},
-
-  /**
-   * The base level class of the game
-   *
-   * @property Level
-   * @type {Level}
-   * @default Hiraya.Level
-   */
-  Level: Level,
-
-  start: function() {
-    var _this = this;
-    this._paths = {};
-    this._paths['levels:main'] = this.Level.create();
-    this.ready();
-  },
-  paths: function(path) {
-    return this._paths[path];
-  },
-  /**
-   * The `ready` event fires when the window is ready and all the assets are loaded
-   *
-   * @event ready
-   */
-  ready: function() {
-  }
-});
-
-module.exports = Game;
-
-},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":17,"./stats":6}],10:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1716,6 +1720,7 @@ var Level = GetterSetter.extend({
    * @returns Hiraya.Entity
    */
   createEntity: function(attributes) {
+    // create a clone of the attribute object
     var clone = JSON.parse(JSON.stringify(attributes));
     var stats = attributes.stats;
     var tile = attributes.tile;
@@ -1761,7 +1766,7 @@ var Level = GetterSetter.extend({
 
 module.exports = Level;
 
-},{"../hiraya-core/getter-setter":16,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":17,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1974,7 +1979,85 @@ var LevelTurnBased = Level.extend({
 
 module.exports = LevelTurnBased;
 
-},{"./level":12,"./entity-turnbased":7}],16:[function(require,module,exports){
+},{"./level":12,"./entity-turnbased":7}],14:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-view
+ */
+
+var Emitter = require('../hiraya-core/emitter');
+var createjs = typeof window === 'object' ? window.createjs : null;
+
+/**
+ * Canvas manages the stage and all things happening in them.
+ *
+ * @class Canvas
+ * @extends Hiraya.Emitter
+ * @namespace Hiraya
+ */
+var Canvas = Emitter.extend({
+  /**
+   * The ID selector of the canvas container element.
+   *
+   * @property id
+   * @type {String}
+   * @default hg-canvas
+   */
+  id: 'hg-canvas',
+
+  /**
+   * Width of the canvas
+   *
+   * @property width
+   * @type {Number}
+   * @default 900
+   */
+  width: 900,
+
+  /**
+   * Height of the canvas
+   *
+   * @property height
+   * @type {Number}
+   * @default 500
+   */
+  height: 500,
+
+  /**
+   * The `createjs.Stage` instance.
+   *
+   * @property _stage
+   * @type {createjs.Stage}
+   * @private
+   */
+  _stage: null,
+
+
+  /**
+   * `Hiraya.Level` instance that is given by the Game object.
+   *
+   * @property level
+   * @type {Hiraya.Level}
+   */
+  level: null,
+
+  init: function() {
+    this.parent();
+    var canvas = document.createElement('canvas');
+    canvas.width = this.width;
+    canvas.height = this.height;
+    canvas.id = this.id;
+    document.body.appendChild(canvas);
+    this._stage = new createjs.Stage(canvas);
+    console.log('level', this.level);
+  }
+
+
+});
+
+module.exports = Canvas;
+
+},{"../hiraya-core/emitter":3}],17:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core

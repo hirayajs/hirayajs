@@ -12,8 +12,9 @@ var Hiraya = {
   Tile: require('./hiraya-game/tile'),
   Tiles: require('./hiraya-game/tiles'),
   Level: require('./hiraya-game/level'),
-  LevelTurnBased: require('./hiraya-game/level-turnbased')
+  LevelTurnBased: require('./hiraya-game/level-turnbased'),
   /** hiraya-game/display **/
+  Canvas: require('./hiraya-view/canvas')
 };
 
 if (typeof window === 'object') {
