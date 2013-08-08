@@ -122,6 +122,14 @@ var Canvas = Emitter.extend({
     }
 
     ticker.addEventListener('tick', this.render.bind(this));
+    this.ready();
+  },
+
+  /**
+   * When the canvas is ready for action.
+   * @event ready
+   */
+  ready: function() {
   },
 
   /**
@@ -149,12 +157,60 @@ var Canvas = Emitter.extend({
    * @chainable
    */
   addSprite: function(sprite) {
-    var layer = this._stage.getChildByName('sprites') || this._stage;
+    var layer = this.getLayer('sprites');
     layer.addChild(sprite.view);
     sprite.spawn();
     return this;
-  }
+  },
 
+  /**
+   * Adds a createjs.BitmapAnimation object to a layer.
+   *
+   * @param {String} layerName
+   * @param {createjs.BitmapAnimation} animation
+   * @chainable
+   */
+  addToLayer: function(layerName, animation) {
+    var layer = this.getLayer(layerName);
+    if (layer) {
+      layer.addChild(animation);
+    }
+    return this;
+  },
+
+  /**
+   * An event hook when the level is object is ready.
+   *
+   * @param {Hiraya.Level} level
+   * @event level
+   */
+  levelReady: function(level) {
+  },
+
+  /**
+   * Gets the layer from the stage.
+   *
+   * @param {String} layername
+   * @return createjs.Container
+   */
+  getLayer: function(layerName) {
+    return this._stage.getChildByName(layerName);
+  },
+
+  /**
+   * Creates a static image derived from a sprite sheet.
+   *
+   * @method createStaticBitmapAnimation
+   * @param {Object} frameData
+   * @param {String} targetFrameLabel
+   * @return createjs.BitmapAnimation
+   */
+  createStaticBitmapAnimation: function(frameData, targetFrameLabel) {
+    var spriteSheet = new createjs.SpriteSheet(frameData);
+    var animation = new createjs.BitmapAnimation(spriteSheet);
+    animation.gotoAndStop(targetFrameLabel);
+    return animation;
+  }
 });
 
 module.exports = Canvas;

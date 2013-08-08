@@ -8,15 +8,21 @@ var Hiraya = {
   Stats: require('./hiraya-game/stats'),
   EntityTurnBased: require('./hiraya-game/entity-turnbased'),
   Entity: require('./hiraya-game/entity'),
+
   /** hiraya-game **/
   Game: require('./hiraya-game/game'),
   Tile: require('./hiraya-game/tile'),
   Tiles: require('./hiraya-game/tiles'),
   Level: require('./hiraya-game/level'),
   LevelTurnBased: require('./hiraya-game/level-turnbased'),
-  /** hiraya-game/display **/
+
+  /** hiraya-view **/
   Canvas: require('./hiraya-view/canvas'),
-  Sprite: require('./hiraya-view/sprite')
+  Sprite: require('./hiraya-view/sprite'),
+
+  /** hiraya-util **/
+  HexagonUtil: require('./hiraya-util/hexagon-util')
+
 };
 
 if (typeof window === 'object') {
@@ -25,7 +31,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13,"./hiraya-view/canvas":14,"./hiraya-view/sprite":15}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13,"./hiraya-view/canvas":14,"./hiraya-view/sprite":15,"./hiraya-util/hexagon-util":16}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -185,6 +191,72 @@ var Class = extendClass(function(){}, {});
 module.exports = Class;
 
 },{}],16:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-util
+ */
+
+
+/**
+ * A static utility class for laying out hexagonal board games.
+ *
+ * @class HexagonUtil
+ * @namespace Hiraya
+ * @final
+ */
+var HexagonUtil = {
+  /**
+   * The width resource of the hexagon used for the board.
+   * @property WIDTH
+   * @static
+   */
+  WIDTH: 84,
+
+  /**
+   * The height resource of the hexagon used for the board.
+   * @property HEIGHT
+   * @static
+   */
+  HEIGHT: 56,
+
+  /**
+   * Set the display object's x and y position based on the tile's hexagonal counterpart.
+   *
+   * @method position
+   * @param {createjs.DisplayObject} object
+   * @param {Hiraya.Tile} tile
+   * @param {Boolean} center
+   * @return {Object} coordinates
+   */
+  position: function(object, tile, center) {
+    var coordinates = this.coordinates(tile, center);
+    object.regX = this.WIDTH * 0.5;
+    object.regY = this.HEIGHT * 0.5;
+    object.x = coordinates.x + object.regX;
+    object.y = coordinates.y + object.regY;
+    return coordinates;
+  },
+
+  /**
+   * Get the raw coordinate of a tile translated to a tile in a hexagonal map.
+   *
+   * @method coordinates
+   * @param {Hiraya.Tile} tile
+   * @param {Boolean} center
+   * @return Object
+   */
+  coordinates: function(tile, center) {
+    if (!tile) return null;
+    return {
+      x: tile.x * this.WIDTH+ (tile.y % 2 ? this.WIDTH * 0.5 : 0) + (center ? this.WIDTH * 0.5 : 0),
+      y: tile.y * (this.HEIGHT - this.HEIGHT * 0.25) + (center ? this.HEIGHT * 0.5 : 0)
+    };
+  }
+};
+
+module.exports = HexagonUtil;
+
+},{}],17:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -238,7 +310,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 (function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
 
 var EventEmitter = exports.EventEmitter = process.EventEmitter;
@@ -424,124 +496,7 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 })(require("__browserify_process"))
-},{"__browserify_process":16}],3:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-core
- */
-
-
-var Class = require('./class');
-var EventEmitter = require('events').EventEmitter;
-
-/**
- * `Hiraya.Emitter` handles event-based callbacks.
- * For example if you wish to create an event manager that dispatches data
- * everytime a certain topic is called:
- *
- *      Game.topicEmitter = Hiraya.Emitter.create({
- *        newTopic: function(topic) {
- *          this.emit('newTopic', topic);
- *        }
- *      });
- *
- *      Game.topicEmitter.on('newTopic', function(topic) {
- *        console.log('Got a new topic:', topic);
- *      });
- *
- *      Game.topicEmitter.newTopic('entityCreate');
- *
- * @class Emitter
- * @extends Hiraya.Class
- * @namespace Hiraya
- */
-var Emitter = Class.extend({
-  init: function() {
-  },
-  /**
-   * Adds a listener to the emitter object
-   *
-   * @method on
-   * @param {String} topic 
-   * @param {Function} callback 
-   * @chainable
-   */
-  on: function() {
-    EventEmitter.prototype.on.apply(this, arguments);
-    return this;
-  },
-
-  /**
-   * Removes a listener from the emitter object
-   *
-   * @method off
-   * @param {String} topic
-   * @param {Function} callback
-   * @chainable
-   */
-  off: function(topic, callback) {
-    EventEmitter.prototype.removeListener.apply(this, arguments);
-    return this;
-  },
-
-
-  /**
-   * Removes all listeners or the topic specified
-   *
-   * @method offAll
-   * @param {String} [topic]
-   * @chainable
-   */
-  offAll: function() {
-    EventEmitter.prototype.removeAllListeners.apply(this, arguments);
-    return this;
-  },
-
-  /**
-   * Emits a topic contained in the emitter object
-   *
-   * @method emit
-   * @param {String} topic
-   * @param {Object|String} data*
-   * @chainable
-   */
-  emit: function() {
-    EventEmitter.prototype.emit.apply(this, arguments);
-    return this;
-  },
-
-  /**
-   * Subscribes to a topic only once
-   *
-   * @method once
-   * @param {String} topic
-   * @chainable
-   */
-  once: function() {
-    EventEmitter.prototype.once.apply(this, arguments);
-    return this;
-  },
-
-
-  /**
-   * Remove an event listener
-   *
-   * @methoda removeListener
-   * @param {String} topic
-   * @param {Function} callback
-   * @private
-   * @chainable
-   */
-  removeListener: function() {
-    EventEmitter.prototype.removeListener.apply(this, arguments);
-    return this;
-  }
-});
-
-
-module.exports = Emitter;
-
-},{"events":17,"./class":2}],4:[function(require,module,exports){
+},{"__browserify_process":17}],4:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -669,7 +624,124 @@ var Collection = Emitter.extend({
 
 module.exports = Collection;
 
-},{"./emitter":3}],5:[function(require,module,exports){
+},{"./emitter":3}],3:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-core
+ */
+
+
+var Class = require('./class');
+var EventEmitter = require('events').EventEmitter;
+
+/**
+ * `Hiraya.Emitter` handles event-based callbacks.
+ * For example if you wish to create an event manager that dispatches data
+ * everytime a certain topic is called:
+ *
+ *      Game.topicEmitter = Hiraya.Emitter.create({
+ *        newTopic: function(topic) {
+ *          this.emit('newTopic', topic);
+ *        }
+ *      });
+ *
+ *      Game.topicEmitter.on('newTopic', function(topic) {
+ *        console.log('Got a new topic:', topic);
+ *      });
+ *
+ *      Game.topicEmitter.newTopic('entityCreate');
+ *
+ * @class Emitter
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Emitter = Class.extend({
+  init: function() {
+  },
+  /**
+   * Adds a listener to the emitter object
+   *
+   * @method on
+   * @param {String} topic 
+   * @param {Function} callback 
+   * @chainable
+   */
+  on: function() {
+    EventEmitter.prototype.on.apply(this, arguments);
+    return this;
+  },
+
+  /**
+   * Removes a listener from the emitter object
+   *
+   * @method off
+   * @param {String} topic
+   * @param {Function} callback
+   * @chainable
+   */
+  off: function(topic, callback) {
+    EventEmitter.prototype.removeListener.apply(this, arguments);
+    return this;
+  },
+
+
+  /**
+   * Removes all listeners or the topic specified
+   *
+   * @method offAll
+   * @param {String} [topic]
+   * @chainable
+   */
+  offAll: function() {
+    EventEmitter.prototype.removeAllListeners.apply(this, arguments);
+    return this;
+  },
+
+  /**
+   * Emits a topic contained in the emitter object
+   *
+   * @method emit
+   * @param {String} topic
+   * @param {Object|String} data*
+   * @chainable
+   */
+  emit: function() {
+    EventEmitter.prototype.emit.apply(this, arguments);
+    return this;
+  },
+
+  /**
+   * Subscribes to a topic only once
+   *
+   * @method once
+   * @param {String} topic
+   * @chainable
+   */
+  once: function() {
+    EventEmitter.prototype.once.apply(this, arguments);
+    return this;
+  },
+
+
+  /**
+   * Remove an event listener
+   *
+   * @methoda removeListener
+   * @param {String} topic
+   * @param {Function} callback
+   * @private
+   * @chainable
+   */
+  removeListener: function() {
+    EventEmitter.prototype.removeListener.apply(this, arguments);
+    return this;
+  }
+});
+
+
+module.exports = Emitter;
+
+},{"events":18,"./class":2}],5:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1001,7 +1073,7 @@ Entity.id = 0;
 
 module.exports = Entity;
 
-},{"../hiraya-core/getter-setter":18,"./stats":6}],9:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":19,"./stats":6}],9:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1050,7 +1122,7 @@ var Game = Emitter.extend({
     this._paths.level = this.Level.create();
     if (this.Canvas && typeof this.Canvas.create === 'function') {
       this._paths.canvas = this.Canvas.create();
-      this._paths.level.canvas = this._paths.canvas;
+      this._paths.canvas.levelReady(this._paths.level);
     }
     this.ready();
     return this;
@@ -1069,7 +1141,7 @@ var Game = Emitter.extend({
 
 module.exports = Game;
 
-},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
+},{"../hiraya-game/level":12,"../hiraya-core/emitter":3,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1584,6 +1656,7 @@ var Tiles = Class.extend({
     vectorY = Math.pow(start.y - destination.y, 2);
     return Math.sqrt(vectorX + vectorY);
   }
+  
 });
 
 module.exports = Tiles;
@@ -1770,7 +1843,225 @@ var Level = GetterSetter.extend({
 
 module.exports = Level;
 
-},{"../hiraya-core/getter-setter":18,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":19,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],14:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-view
+ */
+
+var Emitter = require('../hiraya-core/emitter');
+var createjs = typeof window === 'object' ? window.createjs : null;
+
+/**
+ * Canvas manages the stage and all things happening in them.
+ *
+ * @class Canvas
+ * @extends Hiraya.Emitter
+ * @namespace Hiraya
+ */
+var Canvas = Emitter.extend({
+  /**
+   * The ID selector of the canvas container element.
+   *
+   * @property id
+   * @type {String}
+   * @default hg-canvas
+   */
+  id: 'hg-canvas',
+
+  /**
+   * Width of the canvas
+   *
+   * @property width
+   * @type {Number}
+   * @default 900
+   */
+  width: 900,
+
+  /**
+   * Height of the canvas
+   *
+   * @property height
+   * @type {Number}
+   * @default 500
+   */
+  height: 500,
+
+  /**
+   * The `createjs.Stage` instance.
+   *
+   * @property _stage
+   * @type {createjs.Stage}
+   * @private
+   */
+  _stage: null,
+
+
+  /**
+   * The createjs.Ticker static class
+   *
+   * @property _ticker
+   * @type {createjs.Ticker}
+   * @private
+   */
+  _ticker: null,
+
+  /**
+   * `Hiraya.Level` instance that is given by the Game object.
+   *
+   * @property level
+   * @type {Hiraya.Level}
+   */
+  level: null,
+
+  /**
+   * The layer structure of the canvas. Useful for separating tiles, sprites, foreground
+   * and background to name a few. Layer names listed in order will be generated accordingly.
+   *
+   *     Hiraya.Canvas.extend({
+   *      layers: [
+   *        'background',
+   *        'tiles',
+   *        'sprites',
+   *        'foreground'
+   *      ];
+   *     })
+   *
+   *
+   * @property layers
+   * @type {Array}
+   */
+  layers: [
+    'background',
+    'tiles',
+    'sprites',
+    'foreground'
+  ],
+
+  /**
+   * 
+   *
+   * @property sprites
+   * @type {Array}
+   */
+  sprites: [],
+
+  init: function() {
+    this.parent();
+    var canvas = document.createElement('canvas');
+    canvas.width = this.width;
+    canvas.height = this.height;
+    canvas.id = this.id;
+    document.body.appendChild(canvas);
+    this._stage = new createjs.Stage(canvas);
+    this._ticker = createjs.Ticker;
+
+    var stage = this._stage;
+    var ticker = this._ticker;
+
+    if (this.layers && typeof this.layers.forEach === 'function') {
+      this.layers.forEach(function(layerName, i) {
+        var layer = new createjs.Container();
+        layer.name = layerName;
+        stage.addChild(layer);
+      });
+    }
+
+    ticker.addEventListener('tick', this.render.bind(this));
+    this.ready();
+  },
+
+  /**
+   * When the canvas is ready for action.
+   * @event ready
+   */
+  ready: function() {
+  },
+
+  /**
+   * Renders the canvas operation.
+   *
+   * @method render
+   * @private
+   */
+  render: function() {
+    this._stage.update();
+  },
+
+  /**
+   * Pause the render operation.
+   * @method pause 
+   * @param {Boolean} shouldPause if set to false, will reverse the pause command.
+   */
+  pause: function(shouldPause) {
+    this._ticker.setPaused(shouldPause);
+  },
+
+  /**
+   * @method addSprite
+   * @param {Hiraya.Sprite} sprite
+   * @chainable
+   */
+  addSprite: function(sprite) {
+    var layer = this.getLayer('sprites');
+    layer.addChild(sprite.view);
+    sprite.spawn();
+    return this;
+  },
+
+  /**
+   * Adds a createjs.BitmapAnimation object to a layer.
+   *
+   * @param {String} layerName
+   * @param {createjs.BitmapAnimation} animation
+   * @chainable
+   */
+  addToLayer: function(layerName, animation) {
+    var layer = this.getLayer(layerName);
+    if (layer) {
+      layer.addChild(animation);
+    }
+    return this;
+  },
+
+  /**
+   * An event hook when the level is object is ready.
+   *
+   * @param {Hiraya.Level} level
+   * @event level
+   */
+  levelReady: function(level) {
+  },
+
+  /**
+   * Gets the layer from the stage.
+   *
+   * @param {String} layername
+   * @return createjs.Container
+   */
+  getLayer: function(layerName) {
+    return this._stage.getChildByName(layerName);
+  },
+
+  /**
+   * Creates a static image derived from a sprite sheet.
+   *
+   * @method createStaticBitmapAnimation
+   * @param {Object} frameData
+   * @param {String} targetFrameLabel
+   * @return createjs.BitmapAnimation
+   */
+  createStaticBitmapAnimation: function(frameData, targetFrameLabel) {
+    var spriteSheet = new createjs.SpriteSheet(frameData);
+    var animation = new createjs.BitmapAnimation(spriteSheet);
+    animation.gotoAndStop(targetFrameLabel);
+    return animation;
+  }
+});
+
+module.exports = Canvas;
+
+},{"../hiraya-core/emitter":3}],13:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1983,169 +2274,7 @@ var LevelTurnBased = Level.extend({
 
 module.exports = LevelTurnBased;
 
-},{"./level":12,"./entity-turnbased":7}],14:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-view
- */
-
-var Emitter = require('../hiraya-core/emitter');
-var createjs = typeof window === 'object' ? window.createjs : null;
-
-/**
- * Canvas manages the stage and all things happening in them.
- *
- * @class Canvas
- * @extends Hiraya.Emitter
- * @namespace Hiraya
- */
-var Canvas = Emitter.extend({
-  /**
-   * The ID selector of the canvas container element.
-   *
-   * @property id
-   * @type {String}
-   * @default hg-canvas
-   */
-  id: 'hg-canvas',
-
-  /**
-   * Width of the canvas
-   *
-   * @property width
-   * @type {Number}
-   * @default 900
-   */
-  width: 900,
-
-  /**
-   * Height of the canvas
-   *
-   * @property height
-   * @type {Number}
-   * @default 500
-   */
-  height: 500,
-
-  /**
-   * The `createjs.Stage` instance.
-   *
-   * @property _stage
-   * @type {createjs.Stage}
-   * @private
-   */
-  _stage: null,
-
-
-  /**
-   * The createjs.Ticker static class
-   *
-   * @property _ticker
-   * @type {createjs.Ticker}
-   * @private
-   */
-  _ticker: null,
-
-  /**
-   * `Hiraya.Level` instance that is given by the Game object.
-   *
-   * @property level
-   * @type {Hiraya.Level}
-   */
-  level: null,
-
-  /**
-   * The layer structure of the canvas. Useful for separating tiles, sprites, foreground
-   * and background to name a few. Layer names listed in order will be generated accordingly.
-   *
-   *     Hiraya.Canvas.extend({
-   *      layers: [
-   *        'background',
-   *        'tiles',
-   *        'sprites',
-   *        'foreground'
-   *      ];
-   *     })
-   *
-   *
-   * @property layers
-   * @type {Array}
-   */
-  layers: [
-    'background',
-    'tiles',
-    'sprites',
-    'foreground'
-  ],
-
-  /**
-   * 
-   *
-   * @property sprites
-   * @type {Array}
-   */
-  sprites: [],
-
-  init: function() {
-    this.parent();
-    var canvas = document.createElement('canvas');
-    canvas.width = this.width;
-    canvas.height = this.height;
-    canvas.id = this.id;
-    document.body.appendChild(canvas);
-    this._stage = new createjs.Stage(canvas);
-    this._ticker = createjs.Ticker;
-
-    var stage = this._stage;
-    var ticker = this._ticker;
-
-    if (this.layers && typeof this.layers.forEach === 'function') {
-      this.layers.forEach(function(layerName, i) {
-        var layer = new createjs.Container();
-        layer.name = layerName;
-        stage.addChild(layer);
-      });
-    }
-
-    ticker.addEventListener('tick', this.render.bind(this));
-  },
-
-  /**
-   * Renders the canvas operation.
-   *
-   * @method render
-   * @private
-   */
-  render: function() {
-    this._stage.update();
-  },
-
-  /**
-   * Pause the render operation.
-   * @method pause 
-   * @param {Boolean} shouldPause if set to false, will reverse the pause command.
-   */
-  pause: function(shouldPause) {
-    this._ticker.setPaused(shouldPause);
-  },
-
-  /**
-   * @method addSprite
-   * @param {Hiraya.Sprite} sprite
-   * @chainable
-   */
-  addSprite: function(sprite) {
-    var layer = this._stage.getChildByName('sprites') || this._stage;
-    layer.addChild(sprite.view);
-    sprite.spawn();
-    return this;
-  }
-
-});
-
-module.exports = Canvas;
-
-},{"../hiraya-core/emitter":3}],15:[function(require,module,exports){
+},{"./level":12,"./entity-turnbased":7}],15:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-view
@@ -2195,7 +2324,6 @@ var Sprite = Emitter.extend({
       var animation = new createjs.BitmapAnimation(new createjs.SpriteSheet(this.frameData));
       animation.name = 'animation';
       this.view.addChild(animation);
-
     }
 
     if (this.image instanceof Image) {
@@ -2323,7 +2451,7 @@ var Sprite = Emitter.extend({
 
 module.exports = Sprite;
 
-},{"../hiraya-core/emitter":3}],18:[function(require,module,exports){
+},{"../hiraya-core/emitter":3}],19:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core

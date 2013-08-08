@@ -46,7 +46,7 @@ var Game = Emitter.extend({
     this._paths.level = this.Level.create();
     if (this.Canvas && typeof this.Canvas.create === 'function') {
       this._paths.canvas = this.Canvas.create();
-      this._paths.level.canvas = this._paths.canvas;
+      this._paths.canvas.levelReady(this._paths.level);
     }
     this.ready();
     return this;

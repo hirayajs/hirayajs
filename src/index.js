@@ -7,15 +7,21 @@ var Hiraya = {
   Stats: require('./hiraya-game/stats'),
   EntityTurnBased: require('./hiraya-game/entity-turnbased'),
   Entity: require('./hiraya-game/entity'),
+
   /** hiraya-game **/
   Game: require('./hiraya-game/game'),
   Tile: require('./hiraya-game/tile'),
   Tiles: require('./hiraya-game/tiles'),
   Level: require('./hiraya-game/level'),
   LevelTurnBased: require('./hiraya-game/level-turnbased'),
-  /** hiraya-game/display **/
+
+  /** hiraya-view **/
   Canvas: require('./hiraya-view/canvas'),
-  Sprite: require('./hiraya-view/sprite')
+  Sprite: require('./hiraya-view/sprite'),
+
+  /** hiraya-util **/
+  HexagonUtil: require('./hiraya-util/hexagon-util')
+
 };
 
 if (typeof window === 'object') {

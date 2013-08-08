@@ -304,6 +304,7 @@ var Tiles = Class.extend({
     vectorY = Math.pow(start.y - destination.y, 2);
     return Math.sqrt(vectorX + vectorY);
   }
+  
 });
 
 module.exports = Tiles;
