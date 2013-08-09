@@ -56,7 +56,7 @@ var Level = GetterSetter.extend({
   init: function() {
     this.tiles = this.Tiles.create();
     this.entities = Collection.create();
-    this.parent();
+    this._super();
     this.ready();
   },
 

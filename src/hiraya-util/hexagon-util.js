@@ -17,14 +17,14 @@ var HexagonUtil = {
    * @property WIDTH
    * @static
    */
-  WIDTH: 84,
+  WIDTH: 80,
 
   /**
    * The height resource of the hexagon used for the board.
    * @property HEIGHT
    * @static
    */
-  HEIGHT: 56,
+  HEIGHT: 60,
 
   /**
    * Set the display object's x and y position based on the tile's hexagonal counterpart.
@@ -55,8 +55,26 @@ var HexagonUtil = {
   coordinates: function(tile, center) {
     if (!tile) return null;
     return {
-      x: tile.x * this.WIDTH+ (tile.y % 2 ? this.WIDTH * 0.5 : 0) + (center ? this.WIDTH * 0.5 : 0),
+      x: tile.x * this.WIDTH + (tile.y % 2 ? this.WIDTH * 0.5 : 0) + (center ? this.WIDTH * 0.5 : 0),
       y: tile.y * (this.HEIGHT - this.HEIGHT * 0.25) + (center ? this.HEIGHT * 0.5 : 0)
+    };
+  },
+
+  /**
+   * Gets the dimensions if the Hexagon tile was to be placed
+   * in a board.
+   *
+   * @method dimensions
+   * @param {int} columns
+   * @param {int} rows
+   * @returns {Object}
+   */
+  dimensions: function(columns, rows) {
+    var width = columns * this.WIDTH + this.WIDTH;
+    var height = rows * this.HEIGHT;
+    return {
+      width: width,
+      height: height
     };
   }
 };

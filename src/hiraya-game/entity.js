@@ -30,7 +30,7 @@ var Entity = GetterSetter.extend({
     this.stats
       .set('health', 100)
       .set('attack', 100);
-    this.parent();
+    this._super();
   },
 
   /**

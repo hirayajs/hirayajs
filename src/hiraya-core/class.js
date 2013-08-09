@@ -10,11 +10,11 @@
 var start = true;
 
 /**
- * Creates a shim for invoking a this.parent() command by wrapping it inside a closure
+ * Creates a shim for invoking a this._super() command by wrapping it inside a closure
  */
-function protoParent(prototype, name, method) {
+function protoSuper(prototype, name, method) {
   return function() {
-    this.parent = prototype[name];
+    this._super = prototype[name];
     return method.apply(this, arguments);
   };
 }
@@ -31,7 +31,7 @@ function isClassObject(fn) {
  * Extends an object's properties and assign them as prototypes in a Function
  */
 function extendClass(BaseClass, properties) {
-  var parent = BaseClass.prototype;
+  var _super = BaseClass.prototype;
   start = false;
   var prototype = new BaseClass();
   start = true;
@@ -40,12 +40,12 @@ function extendClass(BaseClass, properties) {
   for(var name in properties) {
     if (properties.hasOwnProperty(name)) {
       attribute = properties[name];
-      prototype[name] = typeof parent[name] === 'function' &&
+      prototype[name] = typeof _super[name] === 'function' &&
         typeof attribute === 'function' &&
         // check if it's a Class by checking its list of prototype properties
-        // no super should be assigned if ever.
-        !isClassObject(attribute) ? // make sure we're assigning a proto parent only for functions
-        protoParent(parent, name, attribute) :
+        // no _super should be assigned if ever.
+        !isClassObject(attribute) ? // make sure we're assigning a proto _super only for functions
+        protoSuper(_super, name, attribute) :
         attribute;
     }
   }
@@ -68,8 +68,8 @@ function extendClass(BaseClass, properties) {
    *     var Orc = Human.extend({
    *        baseHealth: 200,
    *        attack: function(enemy) {
-   *          // class methods have super methods
-   *          this.super(enemy);
+   *          // class methods have _super methods
+   *          this._super(enemy);
    *          this.shout('waaagh!');
    *        },
    *        shout: function(message) {

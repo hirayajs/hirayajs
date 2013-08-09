@@ -27,7 +27,7 @@
           });
           ClassB = ClassA.extend({
             init: function() {
-              return this.parent();
+              return this._super();
             }
           });
           return ClassB.create();

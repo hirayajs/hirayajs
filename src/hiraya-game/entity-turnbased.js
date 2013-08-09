@@ -2,7 +2,7 @@ var Entity = require('./entity');
 
 var EntityTurnBased = Entity.extend({
   init: function() {
-    this.parent();
+    this._super();
     this.stats.set('turn', 0, 100);
     this.stats.set('steps', 1);
     this.stats.set('range', 2);

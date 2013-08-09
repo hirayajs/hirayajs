@@ -20,7 +20,7 @@ describe 'hiraya-core', ->
             done()
         ClassB = ClassA.extend
           init: ->
-            do @parent
+            do @_super
         ClassB.create()
 
   describe 'Hiraya.Emitter', ->
