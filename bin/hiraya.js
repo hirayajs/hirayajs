@@ -31,7 +31,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/tile":9,"./hiraya-game/game":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13,"./hiraya-view/sprite":14,"./hiraya-view/canvas":15,"./hiraya-util/hexagon-util":16}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13,"./hiraya-view/canvas":14,"./hiraya-view/sprite":15,"./hiraya-util/hexagon-util":16}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -1098,6 +1098,75 @@ module.exports = Entity;
  */
 
 
+
+var Emitter = require('../hiraya-core/emitter');
+var Level = require('../hiraya-game/level');
+var Tiles = require('../hiraya-game/tiles');
+
+/**
+ * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
+ * as well as reference to instantiated objects that the Hiraya framework provides.
+ *
+ *     Game = Hiraya.Game.create();
+ *     Game.start(); // Game does its work like preloading assets, initializing classes, etc.
+ *
+ * @class Game
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Game = Emitter.extend({
+  /**
+   * Path dictionary
+   *
+   * @property paths
+   * @type {Object}
+   * @private
+   */
+  _paths: {},
+
+  /**
+   * The base level class of the game
+   *
+   * @property Level
+   * @type {Level}
+   * @default Hiraya.Level
+   * @return this
+   */
+  Level: Level,
+
+  start: function() {
+    var _this = this;
+    this._paths = {};
+    this._paths.level = this.Level.create();
+    if (this.Canvas && typeof this.Canvas.create === 'function') {
+      this._paths.canvas = this.Canvas.create();
+      this.paths('canvas').levelReady(this._paths.level);
+      this.paths('level').canvasReady(this._paths.canvas);
+    }
+    this.ready();
+    return this;
+  },
+  paths: function(path) {
+    return this._paths[path];
+  },
+  /**
+   * The `ready` event fires when the window is ready and all the assets are loaded
+   *
+   * @event ready
+   */
+  ready: function() {
+  }
+});
+
+module.exports = Game;
+
+},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
 var Class = require('../hiraya-core/class');
 
 /**
@@ -1299,76 +1368,7 @@ var Tile = Class.extend({
 
 module.exports = Tile;
 
-},{"../hiraya-core/class":2}],10:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
-
-
-
-var Emitter = require('../hiraya-core/emitter');
-var Level = require('../hiraya-game/level');
-var Tiles = require('../hiraya-game/tiles');
-
-/**
- * `Hiraya.Game` is the entry point of the framework. Instantiating this will serve as your namespace,
- * as well as reference to instantiated objects that the Hiraya framework provides.
- *
- *     Game = Hiraya.Game.create();
- *     Game.start(); // Game does its work like preloading assets, initializing classes, etc.
- *
- * @class Game
- * @extends Hiraya.Class
- * @namespace Hiraya
- */
-var Game = Emitter.extend({
-  /**
-   * Path dictionary
-   *
-   * @property paths
-   * @type {Object}
-   * @private
-   */
-  _paths: {},
-
-  /**
-   * The base level class of the game
-   *
-   * @property Level
-   * @type {Level}
-   * @default Hiraya.Level
-   * @return this
-   */
-  Level: Level,
-
-  start: function() {
-    var _this = this;
-    this._paths = {};
-    this._paths.level = this.Level.create();
-    if (this.Canvas && typeof this.Canvas.create === 'function') {
-      this._paths.canvas = this.Canvas.create();
-    }
-    this.paths('canvas').levelReady(this._paths.level);
-    this.paths('level').canvasReady(this._paths.canvas);
-    this.ready();
-    return this;
-  },
-  paths: function(path) {
-    return this._paths[path];
-  },
-  /**
-   * The `ready` event fires when the window is ready and all the assets are loaded
-   *
-   * @event ready
-   */
-  ready: function() {
-  }
-});
-
-module.exports = Game;
-
-},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],11:[function(require,module,exports){
+},{"../hiraya-core/class":2}],11:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1680,7 +1680,7 @@ var Tiles = Class.extend({
 
 module.exports = Tiles;
 
-},{"../hiraya-core/class":2,"./tile":9}],12:[function(require,module,exports){
+},{"../hiraya-core/class":2,"./tile":10}],12:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -2081,183 +2081,6 @@ module.exports = LevelTurnBased;
  * @submodule hiraya-view
  */
 
-/**
- * Canvas manages the stage and all things happening in them.
- *
- * @class Sprite
- * @extends Hiraya.Emitter
- * @namespace Hiraya
- */
-var Emitter = require('../hiraya-core/emitter');
-var Sprite = Emitter.extend({
-
-  /**
-   * Sprite sheet frameData for the createjs.SpriteSheet class.
-   *
-   * @property sheetData
-   * @type {Object}
-   */
-  sheetData: null,
-
-  /**
-   * Image resource to be used for the sprite object.
-   *
-   * @property image
-   * @type {Image}
-   */
-  image: null,
-
-  /**
-   * The display object container for the sprite sheet animation and image.
-   *
-   * @property view
-   * @type {createjs.BitmapAnimation} 
-   */
-  view: null,
-
-  init: function() {
-    this.view = new createjs.Container();
-    if (this.name) {
-      this.view.name = this.name;
-    }
-
-    if (typeof this.frameData === 'object') {
-      var animation = new createjs.BitmapAnimation(new createjs.SpriteSheet(this.frameData));
-      animation.name = 'animation';
-      this.view.addChild(animation);
-    }
-
-    if (this.image instanceof Image) {
-      var bitmap = new createjs.Bitmap(image);
-      bitmap.name = 'image';
-      this.view.addChild(bitmap);
-    }
-
-  },
-
-  /**
-   * Play the animation based on the key frame in the sprite's frame data.
-   *
-   * @method play
-   * @param {String} frameLabel
-   */
-  play: function(frameLabel) {
-    var animation = this.view.getChildByName('animation');
-    if (animation) {
-      animation.gotoAndPlay(frameLabel);
-    }
-  },
-
-  /**
-   * Set the x coordinate of this sprite
-   *
-   * @method x
-   * @param {Number} x
-   * @chainable
-   */
-  x: function(x) {
-    this.view.x = x;
-    return this;
-  },
-
-  /**
-   * Set the y coordinate of this sprite
-   *
-   * @method y
-   * @param {Number} y
-   * @chainable
-   */
-  y: function(y) {
-    this.view.y = y;
-    return this;
-  },
-
-  /**
-   * Sets the x and y coordinate of this sprite
-   *
-   * @method pos
-   * @param {Number} x
-   * @param {Number} y
-   * @chainable
-   */
-  pos: function(x, y) {
-    this.x(x);
-    this.y(y);
-    return this;
-  },
-
-  /**
-   * Seeks the frame animation label then stop.
-   *
-   * @method playStop
-   * @param {String} frameLabel
-   */
-  playStop: function(frameLabel) {
-    var animation = this.view.getChildByName('animation');
-    if (animation) {
-      animation.gotoAndStop(frameName);
-    }
-  },
-
-  /**
-   * Stop any animation.
-   *
-   * @method stop
-   */
-  stop: function() {
-    var animation = this.view.getChildByName('animation');
-    if (animation) {
-      animation.stop();
-    }
-  },
-
-  /**
-   * An event hook that's fired when the sprite is added to the canvas.
-   *
-   * @event spawn
-   *
-   */
-  spawn: function() {
-  },
-
-  /**
-   * An event hook that's fired when the sprite starts moving.
-   *
-   * @event moveStart
-   */
-  moveStart: function() {
-  },
-
-  /**
-   * An event hook that's fired when the sprite stops moving.
-   *
-   * @event moveEnd
-   */
-  moveEnd: function() {
-  },
-
-  /**
-   * An event hook that's fired when the sprite starts attacking.
-   * Optionally, the name of the attack can be passed here to
-   * let the sprite know which animation to play.
-   *
-   * @event attackStart
-   * @param {String} name
-   * @optional
-   */
-  attackStart: function(name) {
-  }
-});
-
-
-module.exports = Sprite;
-
-},{"../hiraya-core/emitter":3}],15:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-view
- */
-
 var Emitter = require('../hiraya-core/emitter');
 var createjs = typeof window === 'object' ? window.createjs : null;
 
@@ -2639,6 +2462,183 @@ var Canvas = Emitter.extend({
 });
 
 module.exports = Canvas;
+
+},{"../hiraya-core/emitter":3}],15:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-view
+ */
+
+/**
+ * Canvas manages the stage and all things happening in them.
+ *
+ * @class Sprite
+ * @extends Hiraya.Emitter
+ * @namespace Hiraya
+ */
+var Emitter = require('../hiraya-core/emitter');
+var Sprite = Emitter.extend({
+
+  /**
+   * Sprite sheet frameData for the createjs.SpriteSheet class.
+   *
+   * @property sheetData
+   * @type {Object}
+   */
+  sheetData: null,
+
+  /**
+   * Image resource to be used for the sprite object.
+   *
+   * @property image
+   * @type {Image}
+   */
+  image: null,
+
+  /**
+   * The display object container for the sprite sheet animation and image.
+   *
+   * @property view
+   * @type {createjs.BitmapAnimation} 
+   */
+  view: null,
+
+  init: function() {
+    this.view = new createjs.Container();
+    if (this.name) {
+      this.view.name = this.name;
+    }
+
+    if (typeof this.frameData === 'object') {
+      var animation = new createjs.BitmapAnimation(new createjs.SpriteSheet(this.frameData));
+      animation.name = 'animation';
+      this.view.addChild(animation);
+    }
+
+    if (this.image instanceof Image) {
+      var bitmap = new createjs.Bitmap(image);
+      bitmap.name = 'image';
+      this.view.addChild(bitmap);
+    }
+
+  },
+
+  /**
+   * Play the animation based on the key frame in the sprite's frame data.
+   *
+   * @method play
+   * @param {String} frameLabel
+   */
+  play: function(frameLabel) {
+    var animation = this.view.getChildByName('animation');
+    if (animation) {
+      animation.gotoAndPlay(frameLabel);
+    }
+  },
+
+  /**
+   * Set the x coordinate of this sprite
+   *
+   * @method x
+   * @param {Number} x
+   * @chainable
+   */
+  x: function(x) {
+    this.view.x = x;
+    return this;
+  },
+
+  /**
+   * Set the y coordinate of this sprite
+   *
+   * @method y
+   * @param {Number} y
+   * @chainable
+   */
+  y: function(y) {
+    this.view.y = y;
+    return this;
+  },
+
+  /**
+   * Sets the x and y coordinate of this sprite
+   *
+   * @method pos
+   * @param {Number} x
+   * @param {Number} y
+   * @chainable
+   */
+  pos: function(x, y) {
+    this.x(x);
+    this.y(y);
+    return this;
+  },
+
+  /**
+   * Seeks the frame animation label then stop.
+   *
+   * @method playStop
+   * @param {String} frameLabel
+   */
+  playStop: function(frameLabel) {
+    var animation = this.view.getChildByName('animation');
+    if (animation) {
+      animation.gotoAndStop(frameName);
+    }
+  },
+
+  /**
+   * Stop any animation.
+   *
+   * @method stop
+   */
+  stop: function() {
+    var animation = this.view.getChildByName('animation');
+    if (animation) {
+      animation.stop();
+    }
+  },
+
+  /**
+   * An event hook that's fired when the sprite is added to the canvas.
+   *
+   * @event spawn
+   *
+   */
+  spawn: function() {
+  },
+
+  /**
+   * An event hook that's fired when the sprite starts moving.
+   *
+   * @event moveStart
+   */
+  moveStart: function() {
+  },
+
+  /**
+   * An event hook that's fired when the sprite stops moving.
+   *
+   * @event moveEnd
+   */
+  moveEnd: function() {
+  },
+
+  /**
+   * An event hook that's fired when the sprite starts attacking.
+   * Optionally, the name of the attack can be passed here to
+   * let the sprite know which animation to play.
+   *
+   * @event attackStart
+   * @param {String} name
+   * @optional
+   */
+  attackStart: function(name) {
+  }
+});
+
+
+module.exports = Sprite;
 
 },{"../hiraya-core/emitter":3}],19:[function(require,module,exports){
 /**
