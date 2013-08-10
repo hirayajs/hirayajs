@@ -156,16 +156,17 @@
       });
     });
     describe('Hiraya.Level', function() {
-      var level;
-      level = Hiraya.Level.create();
       describe('#entities', function() {
         return it('should be able to handle entities', function() {
+          var level;
+          level = Hiraya.Level.create();
           return expect(level.entities.length).to.be(0);
         });
       });
-      return describe('#createEntity(attributes)', function() {
+      describe('#createEntity(attributes)', function() {
         return it('should create an entity based on attributes', function() {
-          var attributes, entity;
+          var attributes, entity, level;
+          level = Hiraya.Level.create();
           attributes = {
             stats: {
               health: [100, 100]
@@ -173,6 +174,55 @@
           };
           entity = level.createEntity(attributes);
           return expect(entity.stats.health.value).to.be(attributes.stats.health[0]);
+        });
+      });
+      describe('#addedEntity event hook', function() {
+        return it('should invoke addedEntity when an entity is added', function(done) {
+          var level;
+          level = Hiraya.Level.create({
+            addedEntity: function(entity) {
+              if (entity) {
+                return done();
+              } else {
+                return done('Entity is undefined');
+              }
+            }
+          });
+          return level.addEntity(level.createEntity({
+            id: 'test',
+            tile: {
+              x: 1,
+              y: 1
+            }
+          }));
+        });
+      });
+      return describe('#movedEntity event hook', function() {
+        return it('should invoke movedEntity when an entity is added along with the current tile and previous tile as arguments', function(done) {
+          var entity, fromTile, level, tile, toTile;
+          fromTile = {
+            x: 0,
+            y: 0
+          };
+          toTile = {
+            x: 0,
+            y: 1
+          };
+          level = Hiraya.Level.create({
+            movedEntity: function(entity, tile, prevTile) {
+              return done();
+            }
+          });
+          level.addEntity(level.createEntity({
+            id: 'test',
+            tile: {
+              x: fromTile.x,
+              y: fromTile.y
+            }
+          }));
+          entity = level.getEntity('test');
+          tile = level.tiles.get(toTile.x, toTile.y);
+          return level.moveEntity(entity, tile);
         });
       });
     });

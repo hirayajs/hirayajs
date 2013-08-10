@@ -10,7 +10,7 @@
     expect = this.expect;
   }
 
-  describe.skip('Turn-based game test suite', function() {
+  describe('Turn-based game test suite', function() {
     describe('A Base Game', function() {
       var Game;
       Game = Hiraya.Game.create();
@@ -62,7 +62,7 @@
       });
     });
     describe('Moving entities', function() {
-      return it('should be able to move entities to a different tile', function() {
+      return it('should be able to move entities to a different tile', function(done) {
         var Game;
         Game = Hiraya.Game.create();
         Game.Level = Hiraya.LevelTurnBased.extend({
@@ -71,16 +71,29 @@
             columns: 10
           }),
           ready: function() {
-            this.addEntity({
+            var component, entity, fromTile, movedTile, targetTileCoordinates;
+            component = {
+              id: 'marine-test',
               name: 'Marine',
               tile: {
                 x: 9,
                 y: 9
               }
-            });
-            expect(this.tiles.get(9, 9).isOccupied()).to.be.ok();
-            this.tiles.get(0, 0).occupy(this.entities.at(0));
-            return expect(this.entities.at(0).get('tile')).to.be(this.tiles.get(0, 0));
+            };
+            this.addEntity(this.createEntity(component));
+            entity = this.getEntity(component.id);
+            fromTile = this.tiles.get(entity.tile.x, entity.tile.y);
+            targetTileCoordinates = {
+              x: 3,
+              y: 4
+            };
+            this.moveEntity(entity, targetTileCoordinates);
+            movedTile = this.tiles.get(targetTileCoordinates.x, targetTileCoordinates.y);
+            if (movedTile.isOccupied() && fromTile.isEmpty()) {
+              return done();
+            } else {
+              return done('error');
+            }
           }
         });
         return Game.start();
@@ -228,7 +241,7 @@
     });
   });
 
-  describe.only('An automated game test', function() {
+  describe.skip('An automated game test', function() {
     return it('should announce the winner once there is only one left', function(done) {
       var Game;
       Game = Hiraya.Game.create();

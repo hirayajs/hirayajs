@@ -78,6 +78,23 @@ var Canvas = Emitter.extend({
   level: null,
 
   /**
+   * A bridge between the canvas and `createjs.Tween`
+   *
+   * @property Tween
+   * @type {createjs.Tween}
+   */
+  Tween: null,
+
+  /**
+   * A bridge between the canvas and `createjs.Ease`
+   *
+   * @property Ease
+   * @type {createjs.Ease}
+   */
+  Ease: null,
+
+
+  /**
    * The layer structure of the canvas. Useful for separating tiles, sprites, foreground
    * and background to name a few. Layer names listed in order will be generated accordingly.
    *
@@ -95,15 +112,13 @@ var Canvas = Emitter.extend({
    * @type {Array}
    */
   layers: [
-    'background',
+    'ground',
     'tiles',
     'sprites',
     'foreground'
   ],
 
   /**
-   * 
-   *
    * @property sprites
    * @type {Array}
    */
@@ -118,6 +133,8 @@ var Canvas = Emitter.extend({
     document.body.appendChild(canvas);
     this._stage = new createjs.Stage(canvas);
     this._ticker = createjs.Ticker;
+    this.Tween = createjs.Tween;
+    this.Ease = createjs.Ease;
 
     var stage = this._stage;
     var ticker = this._ticker;
@@ -139,8 +156,27 @@ var Canvas = Emitter.extend({
 
     // set the frame rate
     ticker.setFPS(this.fps);
-
     this.ready();
+  },
+
+  /**
+   * eauses the canvas rendering
+   *
+   * @method pause
+   * @chainable
+   */
+  pause: function() {
+    this._ticker.setPaused(true);
+  },
+
+  /**
+   * Resumes the canvas rendering
+   *
+   * @method resume
+   * @chainable
+   */
+  resume: function() {
+    this._ticker.setPaused(false);
   },
 
   /**
@@ -175,17 +211,9 @@ var Canvas = Emitter.extend({
    * @method render
    * @private
    */
-  render: function() {
+  render: function(event) {
+    if (event && event.paused) return;
     this._stage.update();
-  },
-
-  /**
-   * Pause the render operation.
-   * @method pause 
-   * @param {Boolean} shouldPause if set to false, will reverse the pause command.
-   */
-  pause: function(shouldPause) {
-    this._ticker.setPaused(shouldPause);
   },
 
   /**
@@ -254,9 +282,35 @@ var Canvas = Emitter.extend({
    * An event hook when the level is object is ready.
    *
    * @param {Hiraya.Level} level
-   * @event level
+   * @event levelReady
    */
   levelReady: function(level) {
+    level.on('event', this._levelEvent.bind(this));
+    if (this.levelEvents.ready) {
+      this.levelEvents.ready.call(this, level);
+    }
+  },
+
+  /**
+   * A dictionary of event hooks
+   *
+   * @property levelEvents
+   * @type {Object}
+   */
+  levelEvents: {},
+
+  /**
+   * Callback for the level events
+   *
+   * @method _levelEvent
+   * @param {String} type
+   * @private
+   */
+  _levelEvent: function(type) {
+    var event = this.levelEvents[type];
+    if (event) {
+      event.apply(this, Array.prototype.slice.call(arguments, 1)); // cut out the type argument
+    }
   },
 
   /**
@@ -380,7 +434,6 @@ var Canvas = Emitter.extend({
   y: function() {
     return this._y;
   }
-
 });
 
 module.exports = Canvas;

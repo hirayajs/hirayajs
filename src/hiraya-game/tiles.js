@@ -149,8 +149,80 @@ var Tiles = Class.extend({
    * @returns {Boolean}
    */
   _movementCost: function(start, end) {
-    //return end.entities.length || end.wall ? 10000 : end.val();
+                   //return end.entities.length || end.wall ? 10000 : end.val();
     return end.wall ? 10000 : end.val();
+  },
+
+  /**
+   * Performs an A-star pathfinding algorithm
+   *
+   * @method path
+   * @param {Hiraya.Tile} start
+   * @param {Hiraya.Tile} end
+   * @returns {Array}
+   */
+  path: function(start, end) {
+    var openList,
+    closedList,
+    currentNode,
+    neighbors,
+    neighbor,
+    scoreG,
+    scoreGBest,
+    i,
+    _len;
+    openList = [start];
+    closedList = [];
+
+    while(openList.length) {
+      var lowestIndex = 0;
+      for(i=0,_len = openList.length; i < _len; i++) {
+        if (openList[i].f < openList[lowestIndex].f) {
+          lowestIndex = i;
+        }
+      }
+      currentNode = openList[lowestIndex];
+      // case END: The result has been found.
+      if (currentNode.x === end.x && currentNode.y === end.y) {
+        var current = currentNode;
+        var parent;
+        var tiles = [];
+        while (current.parent) {
+          tiles.push(current);
+          parent = current.parent; // capture the parent element.
+          current.parent = null; // clear the tile's parent
+          current = parent; // move to the next parent
+        }
+        return tiles.reverse();
+      }
+      // case DEFAULT: Move current node to the closed list.
+      openList.splice(currentNode, 1);
+      closedList.push(currentNode);
+      // Find the best score in the neighboring tile of the hex.
+      neighbors = this.adjacent(currentNode);
+      for(i=0, _len = neighbors.length; i < _len; i++) {
+        neighbor = neighbors[i];
+        if (closedList.indexOf(neighbor) > -1) {
+          continue;
+        }
+        scoreG = currentNode.g + 1;
+        scoreGBest = false;
+        // if it's the first time to touch this tile.
+        if(openList.indexOf(neighbor) === -1) {
+          scoreGBest = true;
+          neighbor.h = this.heuristic(neighbor, end);
+          openList.push(neighbor);
+        } else if (scoreG < neighbor.g) {
+          scoreGBest = true;
+        }
+        if (scoreGBest) {
+          neighbor.parent = currentNode;
+          neighbor.g = scoreG;
+          neighbor.f = neighbor.g + neighbor.h;
+        }
+      }
+    }
+    return [];
   },
 
   /**
@@ -210,83 +282,6 @@ var Tiles = Class.extend({
   },
 
   /**
-   * Performs an A-star pathfinding algorithm
-   *
-   * @method path
-   * @param {Hiraya.Tile} start
-   * @param {Hiraya.Tile} end
-   * @returns {Array}
-   */
-  path: function(start, end) {
-    var openList,
-    closedList,
-    currentNode,
-    neighbors,
-    neighbor,
-    scoreG,
-    scoreGBest,
-    i,
-    _len;
-    openList = [start];
-    closedList = [];
-
-    while(openList.length) {
-      var lowestIndex = 0;
-      for(i=0,_len = openList.length; i < _len; i++) {
-        if (openList[i].f < openList[lowestIndex].f) {
-          lowestIndex = i;
-        }
-      }
-      currentNode = openList[lowestIndex];
-      // case END: The result has been found.
-      if (currentNode.x === end.x && currentNode.y === end.y) {
-        var current = currentNode;
-        var parent;
-        var tiles = [];
-        while (current.parent) {
-          tiles.push(current);
-          parent = current.parent; // capture the parent element.
-          current.parent = null; // clear the tile's parent
-          current = parent; // move to the next parent
-        }
-        return tiles.reverse();
-      }
-      // case DEFAULT: Move current node to the closed list.
-      openList.splice(currentNode, 1);
-      closedList.push(currentNode);
-      // Find the best score in the neighboring tile of the hex.
-      neighbors = this.adjacent(currentNode);
-      for(i=0, _len = neighbors.length; i < _len; i++) {
-        neighbor = neighbors[i];
-        if (closedList.indexOf(neighbor) > -1 ||
-            neighbor.wall ||
-            //neighbor.isOccupied() ||
-            currentNode.blocked(neighbor) ||
-            neighbor.blocked(currentNode)
-           ) {
-              continue;
-           }
-           scoreG = currentNode.g + 1;
-           scoreGBest = false;
-           // if it's the first time to touch this tile.
-           if(openList.indexOf(neighbor) === -1) {
-             scoreGBest = true;
-             neighbor.h = this.heuristic(neighbor, end);
-             openList.push(neighbor);
-           } else if (scoreG < neighbor.g) {
-             scoreGBest = true;
-           }
-           if (scoreGBest) {
-             neighbor.parent = currentNode;
-             neighbor.g = scoreG;
-             neighbor.f = neighbor.g + neighbor.h;
-           }
-      }
-    }
-    return [];
-  },
-
-  /**
    * Used to calculate the heuristics for the path-finding algorithm
    *
    * @method heuristic
@@ -304,7 +299,7 @@ var Tiles = Class.extend({
     vectorY = Math.pow(start.y - destination.y, 2);
     return Math.sqrt(vectorX + vectorY);
   }
-  
+
 });
 
 module.exports = Tiles;

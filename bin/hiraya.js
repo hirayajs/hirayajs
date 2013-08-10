@@ -13,6 +13,7 @@ var Hiraya = {
   Game: require('./hiraya-game/game'),
   Tile: require('./hiraya-game/tile'),
   Tiles: require('./hiraya-game/tiles'),
+  TilesHex: require('./hiraya-game/tiles-hex'),
   Level: require('./hiraya-game/level'),
   LevelTurnBased: require('./hiraya-game/level-turnbased'),
 
@@ -31,7 +32,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/level":12,"./hiraya-game/level-turnbased":13,"./hiraya-view/canvas":14,"./hiraya-view/sprite":15,"./hiraya-util/hexagon-util":16}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/tiles-hex":12,"./hiraya-game/level":13,"./hiraya-game/level-turnbased":14,"./hiraya-view/canvas":15,"./hiraya-view/sprite":16,"./hiraya-util/hexagon-util":17}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -190,7 +191,7 @@ var Class = extendClass(function(){}, {});
 
 module.exports = Class;
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-util
@@ -274,7 +275,7 @@ var HexagonUtil = {
 
 module.exports = HexagonUtil;
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -328,7 +329,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
 
 var EventEmitter = exports.EventEmitter = process.EventEmitter;
@@ -514,7 +515,7 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 })(require("__browserify_process"))
-},{"__browserify_process":17}],3:[function(require,module,exports){
+},{"__browserify_process":18}],3:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -631,7 +632,7 @@ var Emitter = Class.extend({
 
 module.exports = Emitter;
 
-},{"events":18,"./class":2}],4:[function(require,module,exports){
+},{"events":19,"./class":2}],4:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -1091,7 +1092,7 @@ Entity.id = 0;
 
 module.exports = Entity;
 
-},{"../hiraya-core/getter-setter":19,"./stats":6}],9:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":20,"./stats":6}],9:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1141,7 +1142,6 @@ var Game = Emitter.extend({
     if (this.Canvas && typeof this.Canvas.create === 'function') {
       this._paths.canvas = this.Canvas.create();
       this.paths('canvas').levelReady(this._paths.level);
-      this.paths('level').canvasReady(this._paths.canvas);
     }
     this.ready();
     return this;
@@ -1160,7 +1160,7 @@ var Game = Emitter.extend({
 
 module.exports = Game;
 
-},{"../hiraya-core/emitter":3,"../hiraya-game/level":12,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
+},{"../hiraya-core/emitter":3,"../hiraya-game/level":13,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1321,6 +1321,16 @@ var Tile = Class.extend({
    */
   isOccupied: function() {
     return this.entities.length > 0;
+  },
+
+  /**
+   * Tells if the tile has no occupants in it
+   *
+   * @method isEmpty
+   * @returns Boolean
+   */
+  isEmpty: function() {
+    return this.entities.length === 0;
   },
 
   /**
@@ -1520,8 +1530,80 @@ var Tiles = Class.extend({
    * @returns {Boolean}
    */
   _movementCost: function(start, end) {
-    //return end.entities.length || end.wall ? 10000 : end.val();
+                   //return end.entities.length || end.wall ? 10000 : end.val();
     return end.wall ? 10000 : end.val();
+  },
+
+  /**
+   * Performs an A-star pathfinding algorithm
+   *
+   * @method path
+   * @param {Hiraya.Tile} start
+   * @param {Hiraya.Tile} end
+   * @returns {Array}
+   */
+  path: function(start, end) {
+    var openList,
+    closedList,
+    currentNode,
+    neighbors,
+    neighbor,
+    scoreG,
+    scoreGBest,
+    i,
+    _len;
+    openList = [start];
+    closedList = [];
+
+    while(openList.length) {
+      var lowestIndex = 0;
+      for(i=0,_len = openList.length; i < _len; i++) {
+        if (openList[i].f < openList[lowestIndex].f) {
+          lowestIndex = i;
+        }
+      }
+      currentNode = openList[lowestIndex];
+      // case END: The result has been found.
+      if (currentNode.x === end.x && currentNode.y === end.y) {
+        var current = currentNode;
+        var parent;
+        var tiles = [];
+        while (current.parent) {
+          tiles.push(current);
+          parent = current.parent; // capture the parent element.
+          current.parent = null; // clear the tile's parent
+          current = parent; // move to the next parent
+        }
+        return tiles.reverse();
+      }
+      // case DEFAULT: Move current node to the closed list.
+      openList.splice(currentNode, 1);
+      closedList.push(currentNode);
+      // Find the best score in the neighboring tile of the hex.
+      neighbors = this.adjacent(currentNode);
+      for(i=0, _len = neighbors.length; i < _len; i++) {
+        neighbor = neighbors[i];
+        if (closedList.indexOf(neighbor) > -1) {
+          continue;
+        }
+        scoreG = currentNode.g + 1;
+        scoreGBest = false;
+        // if it's the first time to touch this tile.
+        if(openList.indexOf(neighbor) === -1) {
+          scoreGBest = true;
+          neighbor.h = this.heuristic(neighbor, end);
+          openList.push(neighbor);
+        } else if (scoreG < neighbor.g) {
+          scoreGBest = true;
+        }
+        if (scoreGBest) {
+          neighbor.parent = currentNode;
+          neighbor.g = scoreG;
+          neighbor.f = neighbor.g + neighbor.h;
+        }
+      }
+    }
+    return [];
   },
 
   /**
@@ -1581,83 +1663,6 @@ var Tiles = Class.extend({
   },
 
   /**
-   * Performs an A-star pathfinding algorithm
-   *
-   * @method path
-   * @param {Hiraya.Tile} start
-   * @param {Hiraya.Tile} end
-   * @returns {Array}
-   */
-  path: function(start, end) {
-    var openList,
-    closedList,
-    currentNode,
-    neighbors,
-    neighbor,
-    scoreG,
-    scoreGBest,
-    i,
-    _len;
-    openList = [start];
-    closedList = [];
-
-    while(openList.length) {
-      var lowestIndex = 0;
-      for(i=0,_len = openList.length; i < _len; i++) {
-        if (openList[i].f < openList[lowestIndex].f) {
-          lowestIndex = i;
-        }
-      }
-      currentNode = openList[lowestIndex];
-      // case END: The result has been found.
-      if (currentNode.x === end.x && currentNode.y === end.y) {
-        var current = currentNode;
-        var parent;
-        var tiles = [];
-        while (current.parent) {
-          tiles.push(current);
-          parent = current.parent; // capture the parent element.
-          current.parent = null; // clear the tile's parent
-          current = parent; // move to the next parent
-        }
-        return tiles.reverse();
-      }
-      // case DEFAULT: Move current node to the closed list.
-      openList.splice(currentNode, 1);
-      closedList.push(currentNode);
-      // Find the best score in the neighboring tile of the hex.
-      neighbors = this.adjacent(currentNode);
-      for(i=0, _len = neighbors.length; i < _len; i++) {
-        neighbor = neighbors[i];
-        if (closedList.indexOf(neighbor) > -1 ||
-            neighbor.wall ||
-            //neighbor.isOccupied() ||
-            currentNode.blocked(neighbor) ||
-            neighbor.blocked(currentNode)
-           ) {
-              continue;
-           }
-           scoreG = currentNode.g + 1;
-           scoreGBest = false;
-           // if it's the first time to touch this tile.
-           if(openList.indexOf(neighbor) === -1) {
-             scoreGBest = true;
-             neighbor.h = this.heuristic(neighbor, end);
-             openList.push(neighbor);
-           } else if (scoreG < neighbor.g) {
-             scoreGBest = true;
-           }
-           if (scoreGBest) {
-             neighbor.parent = currentNode;
-             neighbor.g = scoreG;
-             neighbor.f = neighbor.g + neighbor.h;
-           }
-      }
-    }
-    return [];
-  },
-
-  /**
    * Used to calculate the heuristics for the path-finding algorithm
    *
    * @method heuristic
@@ -1675,12 +1680,228 @@ var Tiles = Class.extend({
     vectorY = Math.pow(start.y - destination.y, 2);
     return Math.sqrt(vectorX + vectorY);
   }
-  
+
 });
 
 module.exports = Tiles;
 
 },{"../hiraya-core/class":2,"./tile":10}],12:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+var Tiles = require('./tiles');
+
+/**
+ * `Hiraya.TilesHex` is the hex-version of `Hiraya.Tile`. It contains a different method of finding neighbors.
+ *
+ * @class TilesHex
+ * @extends Hiraya.Tiles
+ * @namespace Hiraya
+ */
+var TilesHex = Tiles.extend({
+  /**
+   * @property EAST
+   * @type {String}
+   * @static
+   */
+  EAST: 'east',
+
+  /**
+   * @property WEST
+   * @type {String}
+   * @static
+   */
+  WEST: 'west',
+
+  /**
+   * @property SOUTHEAST
+   * @type {String}
+   * @static
+   */
+  SOUTHEAST: 'southEast',
+
+  /**
+   * @property NORTHEAST
+   * @type {String}
+   * @static
+   */
+  NORTHEAST: 'northEast',
+
+  /**
+   * @property SOUTHWEST
+   * @type {String}
+   * @static
+   */
+  SOUTHWEST: 'southWest',
+
+  /**
+   * @property NORTHWEST
+   * @type {String}
+   * @static
+   */
+  NORTHWEST: 'northWest',
+
+  /**
+   * Calculates the adjacent x coordinate based on index and radius
+   * @param {string} direction
+   * @param {boolean} isOddRow
+   * @param {number} index
+   * @param {number} i
+   * @return {Number}
+   */
+  deltaX: function(direction, isOddRow, index, i) {
+    var result;
+    if (index === null) {
+      index = 1;
+    }
+    if (i === null) {
+      i = 0;
+    }
+    result = 0;
+    switch (direction) {
+      case this.EAST:
+        result += (isOddRow ? Math.floor(i * 0.5) * -1 : Math.ceil(i * 0.5) * -1) + index;
+      break;
+      case this.WEST:
+        result += (isOddRow ? Math.ceil(i * 0.5) : Math.floor(i * 0.5)) - index;
+      break;
+      case this.SOUTHEAST:
+        result += (isOddRow ? Math.ceil(index * 0.5) : Math.floor(index * 0.5)) - i;
+      break;
+      case this.NORTHEAST:
+        result += Math.floor(index * 0.5) + i - Math.floor(i * 0.5);
+      if (isOddRow) {
+        if (index % 2 && (index + i) % 2) {
+          result++;
+        }
+      } else {
+        if (index % 2 === 0 && (index + i) % 2) {
+          result--;
+        }
+      }
+      break;
+      case this.SOUTHWEST:
+        result -= Math.ceil(index * 0.5) + i - Math.ceil(i * 0.5);
+      if (isOddRow) {
+        if (index % 2 && (index + i) % 2) {
+          result++;
+        }
+      } else {
+        if (index % 2 === 0 && (index + i) % 2) {
+          result--;
+        }
+      }
+      break;
+      case this.NORTHWEST:
+        result += (isOddRow ? Math.ceil(index * -0.5) : Math.floor(index * -0.5)) + i;
+    }
+    return result;
+  },
+
+  /**
+   * Calculates the adjacent y coordinate based on index and radius
+   * @param {string} direction
+   * @param {boolean} isOddRow
+   * @param {number} index
+   * @param {number} i
+   * @return {Number}
+   */
+  deltaY: function(direction, isOddRow, index, i) {
+    var result;
+    if (index === null) {
+      index = 1;
+    }
+    if (i === null) {
+      i = 0;
+    }
+    result = 0;
+    switch (direction) {
+      case this.EAST:
+        result += i;
+      break;
+      case this.WEST:
+        result += i * -1;
+      break;
+      case this.SOUTHEAST:
+        result += index;
+      break;
+      case this.SOUTHWEST:
+        result += index - i;
+      break;
+      case this.NORTHEAST:
+        result += (index * -1) + i;
+      break;
+      case this.NORTHWEST:
+        result += index * -1;
+    }
+    return result;
+  },
+
+  /**
+   * Returns the delta of a coordinate based on the direction
+   * @param {number} centerX
+   * @param {number} centerY
+   * @param {string} direction
+   * @param {boolean} isOddRow
+   * @param {number} index
+   * @return {Array}
+   */
+  delta: function(centerX, centerY, direction, isOddRow, index) {
+    var i, result, tile, dx, dy;
+    result = [];
+    for (i = 1; 1 <= index ? i <= index : i >= index; 1 <= index ? i++ : i--) {
+        dx = centerX + this.deltaX(direction, isOddRow, index, i - 1);
+        dy = centerY + this.deltaY(direction, isOddRow, index, i - 1);
+        tile = this.get(dx, dy);
+        if (tile) {
+            result.push(tile);
+        }
+    }
+    return result;
+  },
+
+  /**
+   * Gets the adjacent neighbors in a hex-like environment
+   * @param {object} tile
+   * @param {number} [radius=1]
+   * @return {Array}
+   */
+  adjacent: function(tile, radius) {
+    var centerX, centerY, east, i, isOddRow, result, northEast, northWest, southEast, southWest, west;
+    if (typeof radius !== 'number') {
+      radius = 1;
+    }
+    centerX = tile.x;
+    centerY = tile.y;
+    result = [];
+    isOddRow = centerY % 2 > 0;
+    if (radius > 0) {
+      for (i = 1; 1 <= radius ? i <= radius : i >= radius; 1 <= radius ? i++ : i--) {
+        east = this.delta(centerX, centerY, this.EAST, isOddRow, i);
+        result = result.concat(east);
+        west = this.delta(centerX, centerY, this.WEST, isOddRow, i);
+        result = result.concat(west);
+        southEast = this.delta(centerX, centerY, this.SOUTHEAST, isOddRow, i);
+        result = result.concat(southEast);
+        northEast = this.delta(centerX, centerY, this.NORTHEAST, isOddRow, i);
+        result = result.concat(northEast);
+        southWest = this.delta(centerX, centerY, this.SOUTHWEST, isOddRow, i);
+        result = result.concat(southWest);
+        northWest = this.delta(centerX, centerY, this.NORTHWEST, isOddRow, i);
+        result = result.concat(northWest);
+      }
+
+    }
+
+    return result;
+  }
+});
+
+module.exports = TilesHex;
+
+},{"./tiles":11}],13:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1749,7 +1970,7 @@ var Level = GetterSetter.extend({
    * @event ready
    */
   ready: function() {
-    this.emit('ready');
+    this.emit('event', 'ready');
   },
 
   /**
@@ -1774,10 +1995,10 @@ var Level = GetterSetter.extend({
     // attributes.stats gets overwritten in library
     this.entities.add(entity);
     this.addedEntity(entity);
+    this.emit('event', 'addedEntity', entity);
     if (entity.id) {
       this._entityIDs[entity.id] = entity;
     }
-    //this.emit('entity:add', entity);
     return this;
   },
 
@@ -1849,12 +2070,42 @@ var Level = GetterSetter.extend({
   },
 
   /**
+   * Moves an entity to a tile in the level.
+   *
+   * @method moveEntity
+   * @param {Hiraya.Entity} entity
+   * @param {Object} position
+   */
+  moveEntity: function(entity, position) {
+    var tile = this.tiles.get(position.x, position.y);
+    if (!tile) return;
+    // make sure to vacate the entity from the tile first
+    var prevTile = entity.tile;
+    if (prevTile) prevTile.vacate(entity);
+    // occupy the tile
+    tile.occupy(entity);
+    this.movedEntity(entity, tile, prevTile);
+    this.emit('event', 'movedEntity', entity, tile, prevTile);
+  },
+
+  /**
    * When an entity is added.
    *
    * @event addedEntity
-   * @param {Entity} entity
+   * @param {Hiraya.Entity} entity
    */
   addedEntity: function(entity) {
+  },
+
+  /**
+   * When an entity has moved
+   *
+   * @event movedEntity
+   * @param {Hiraya.Entity} entity The entity in question
+   * @param {Hiraya.Tile} tile tile that the entity has moved
+   * @param {Hiraya.Tile} prevTile previous tile before it was moved
+   */
+  movedEntity: function(entity, tile, prevTile) {
   }
 
 
@@ -1862,7 +2113,7 @@ var Level = GetterSetter.extend({
 
 module.exports = Level;
 
-},{"../hiraya-core/getter-setter":19,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],13:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":20,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],14:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -2075,7 +2326,7 @@ var LevelTurnBased = Level.extend({
 
 module.exports = LevelTurnBased;
 
-},{"./level":12,"./entity-turnbased":7}],14:[function(require,module,exports){
+},{"./level":13,"./entity-turnbased":7}],15:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-view
@@ -2156,6 +2407,23 @@ var Canvas = Emitter.extend({
   level: null,
 
   /**
+   * A bridge between the canvas and `createjs.Tween`
+   *
+   * @property Tween
+   * @type {createjs.Tween}
+   */
+  Tween: null,
+
+  /**
+   * A bridge between the canvas and `createjs.Ease`
+   *
+   * @property Ease
+   * @type {createjs.Ease}
+   */
+  Ease: null,
+
+
+  /**
    * The layer structure of the canvas. Useful for separating tiles, sprites, foreground
    * and background to name a few. Layer names listed in order will be generated accordingly.
    *
@@ -2173,15 +2441,13 @@ var Canvas = Emitter.extend({
    * @type {Array}
    */
   layers: [
-    'background',
+    'ground',
     'tiles',
     'sprites',
     'foreground'
   ],
 
   /**
-   * 
-   *
    * @property sprites
    * @type {Array}
    */
@@ -2196,6 +2462,8 @@ var Canvas = Emitter.extend({
     document.body.appendChild(canvas);
     this._stage = new createjs.Stage(canvas);
     this._ticker = createjs.Ticker;
+    this.Tween = createjs.Tween;
+    this.Ease = createjs.Ease;
 
     var stage = this._stage;
     var ticker = this._ticker;
@@ -2217,8 +2485,27 @@ var Canvas = Emitter.extend({
 
     // set the frame rate
     ticker.setFPS(this.fps);
-
     this.ready();
+  },
+
+  /**
+   * eauses the canvas rendering
+   *
+   * @method pause
+   * @chainable
+   */
+  pause: function() {
+    this._ticker.setPaused(true);
+  },
+
+  /**
+   * Resumes the canvas rendering
+   *
+   * @method resume
+   * @chainable
+   */
+  resume: function() {
+    this._ticker.setPaused(false);
   },
 
   /**
@@ -2253,17 +2540,9 @@ var Canvas = Emitter.extend({
    * @method render
    * @private
    */
-  render: function() {
+  render: function(event) {
+    if (event && event.paused) return;
     this._stage.update();
-  },
-
-  /**
-   * Pause the render operation.
-   * @method pause 
-   * @param {Boolean} shouldPause if set to false, will reverse the pause command.
-   */
-  pause: function(shouldPause) {
-    this._ticker.setPaused(shouldPause);
   },
 
   /**
@@ -2332,9 +2611,35 @@ var Canvas = Emitter.extend({
    * An event hook when the level is object is ready.
    *
    * @param {Hiraya.Level} level
-   * @event level
+   * @event levelReady
    */
   levelReady: function(level) {
+    level.on('event', this._levelEvent.bind(this));
+    if (this.levelEvents.ready) {
+      this.levelEvents.ready.call(this, level);
+    }
+  },
+
+  /**
+   * A dictionary of event hooks
+   *
+   * @property levelEvents
+   * @type {Object}
+   */
+  levelEvents: {},
+
+  /**
+   * Callback for the level events
+   *
+   * @method _levelEvent
+   * @param {String} type
+   * @private
+   */
+  _levelEvent: function(type) {
+    var event = this.levelEvents[type];
+    if (event) {
+      event.apply(this, Array.prototype.slice.call(arguments, 1)); // cut out the type argument
+    }
   },
 
   /**
@@ -2458,12 +2763,11 @@ var Canvas = Emitter.extend({
   y: function() {
     return this._y;
   }
-
 });
 
 module.exports = Canvas;
 
-},{"../hiraya-core/emitter":3}],15:[function(require,module,exports){
+},{"../hiraya-core/emitter":3}],16:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-view
@@ -2575,6 +2879,25 @@ var Sprite = Emitter.extend({
   },
 
   /**
+   * Instruct the sprite to tread to a list of tiles
+   *
+   * @method tread
+   * @param {Array} arrayOfTiles
+   */
+  tread: function(arrayOfTiles) {
+    this.treadTiles(arrayOfTiles);
+  },
+
+  /**
+   * An event hook when the sprite is told to tread an array of tiles.
+   *
+   * @event treadTiles
+   * @param {Array} arrayOfTiles
+   */
+  treadTiles: function(arrayOfTiles) {
+  },
+
+  /**
    * Seeks the frame animation label then stop.
    *
    * @method playStop
@@ -2640,7 +2963,7 @@ var Sprite = Emitter.extend({
 
 module.exports = Sprite;
 
-},{"../hiraya-core/emitter":3}],19:[function(require,module,exports){
+},{"../hiraya-core/emitter":3}],20:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core

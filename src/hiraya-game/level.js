@@ -66,7 +66,7 @@ var Level = GetterSetter.extend({
    * @event ready
    */
   ready: function() {
-    this.emit('ready');
+    this.emit('event', 'ready');
   },
 
   /**
@@ -91,10 +91,10 @@ var Level = GetterSetter.extend({
     // attributes.stats gets overwritten in library
     this.entities.add(entity);
     this.addedEntity(entity);
+    this.emit('event', 'addedEntity', entity);
     if (entity.id) {
       this._entityIDs[entity.id] = entity;
     }
-    //this.emit('entity:add', entity);
     return this;
   },
 
@@ -166,12 +166,42 @@ var Level = GetterSetter.extend({
   },
 
   /**
+   * Moves an entity to a tile in the level.
+   *
+   * @method moveEntity
+   * @param {Hiraya.Entity} entity
+   * @param {Object} position
+   */
+  moveEntity: function(entity, position) {
+    var tile = this.tiles.get(position.x, position.y);
+    if (!tile) return;
+    // make sure to vacate the entity from the tile first
+    var prevTile = entity.tile;
+    if (prevTile) prevTile.vacate(entity);
+    // occupy the tile
+    tile.occupy(entity);
+    this.movedEntity(entity, tile, prevTile);
+    this.emit('event', 'movedEntity', entity, tile, prevTile);
+  },
+
+  /**
    * When an entity is added.
    *
    * @event addedEntity
-   * @param {Entity} entity
+   * @param {Hiraya.Entity} entity
    */
   addedEntity: function(entity) {
+  },
+
+  /**
+   * When an entity has moved
+   *
+   * @event movedEntity
+   * @param {Hiraya.Entity} entity The entity in question
+   * @param {Hiraya.Tile} tile tile that the entity has moved
+   * @param {Hiraya.Tile} prevTile previous tile before it was moved
+   */
+  movedEntity: function(entity, tile, prevTile) {
   }
 
 

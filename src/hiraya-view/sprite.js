@@ -109,6 +109,25 @@ var Sprite = Emitter.extend({
   },
 
   /**
+   * Instruct the sprite to tread to a list of tiles
+   *
+   * @method tread
+   * @param {Array} arrayOfTiles
+   */
+  tread: function(arrayOfTiles) {
+    this.treadTiles(arrayOfTiles);
+  },
+
+  /**
+   * An event hook when the sprite is told to tread an array of tiles.
+   *
+   * @event treadTiles
+   * @param {Array} arrayOfTiles
+   */
+  treadTiles: function(arrayOfTiles) {
+  },
+
+  /**
    * Seeks the frame animation label then stop.
    *
    * @method playStop

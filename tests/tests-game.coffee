@@ -96,16 +96,45 @@ describe 'hiraya-game', ->
           y: 1
         expect(tiles.get(2 ,1)).to.be.ok()
   describe 'Hiraya.Level', ->
-    level = Hiraya.Level.create()
     describe '#entities', ->
       it 'should be able to handle entities', ->
+        level = Hiraya.Level.create()
         expect(level.entities.length).to.be(0)
     describe '#createEntity(attributes)', ->
       it 'should create an entity based on attributes', ->
+        level = Hiraya.Level.create()
         attributes = stats:
           health: [100,100]
         entity = level.createEntity attributes
         expect(entity.stats.health.value).to.be(attributes.stats.health[0])
+    describe '#addedEntity event hook', ->
+      it 'should invoke addedEntity when an entity is added', (done) ->
+        level = Hiraya.Level.create
+          addedEntity: (entity) ->
+            if entity
+              done()
+            else
+              done 'Entity is undefined'
+        level.addEntity level.createEntity
+          id: 'test'
+          tile:
+            x: 1
+            y: 1
+    describe '#movedEntity event hook', ->
+      it 'should invoke movedEntity when an entity is added along with the current tile and previous tile as arguments', (done) ->
+        fromTile = x: 0, y: 0
+        toTile = x: 0, y: 1
+        level = Hiraya.Level.create
+          movedEntity: (entity, tile, prevTile) ->
+            do done
+        level.addEntity level.createEntity
+          id: 'test'
+          tile:
+            x: fromTile.x
+            y: fromTile.y
+        entity = level.getEntity 'test'
+        tile = level.tiles.get toTile.x, toTile.y
+        level.moveEntity entity, tile
   describe 'Hiraya.LevelTurnBased', ->
     level = Hiraya.LevelTurnBased.create()
     describe '#addEntity(entity)', ->

@@ -5,7 +5,7 @@ else
   Hiraya = @Hiraya
   expect = @expect
 
-describe.skip 'Turn-based game test suite', ->
+describe 'Turn-based game test suite', ->
   describe 'A Base Game', ->
     Game = Hiraya.Game.create()
     it 'should create a Game namespace', ->
@@ -39,21 +39,30 @@ describe.skip 'Turn-based game test suite', ->
           expect(@tiles.get(9,9).isOccupied()).to.be.ok()
       Game.start()
   describe 'Moving entities', ->
-    it 'should be able to move entities to a different tile', ->
+    it 'should be able to move entities to a different tile', (done) ->
       Game = Hiraya.Game.create()
       Game.Level = Hiraya.LevelTurnBased.extend
         Tiles: Hiraya.Tiles.extend
           rows: 10
           columns: 10
         ready: ->
-          @addEntity
+          component =
+            id: 'marine-test'
             name: 'Marine'
             tile:
               x: 9
               y: 9
-          expect(@tiles.get(9,9).isOccupied()).to.be.ok()
-          @tiles.get(0,0).occupy(@entities.at(0))
-          expect(@entities.at(0).get('tile')).to.be(@tiles.get(0,0))
+          @addEntity @createEntity component
+          entity = @getEntity component.id
+          fromTile = @tiles.get entity.tile.x, entity.tile.y
+          targetTileCoordinates = x: 3, y: 4
+          @moveEntity entity, targetTileCoordinates
+          movedTile = @tiles.get targetTileCoordinates.x, targetTileCoordinates.y
+          if movedTile.isOccupied() and fromTile.isEmpty()
+            do done
+          else
+            done 'error'
+          #expect(false).to.be.ok()
       Game.start()
   describe 'Attacking entities', ->
     it 'should be able to target other entities', ->
@@ -121,7 +130,7 @@ describe.skip 'Turn-based game test suite', ->
         gotTurn: ->
           done()
       Game.start()
-describe.only 'An automated game test', ->
+describe.skip 'An automated game test', ->
   it 'should announce the winner once there is only one left', (done) ->
     Game = Hiraya.Game.create()
     Game.Level = Hiraya.LevelTurnBased.extend

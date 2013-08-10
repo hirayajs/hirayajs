@@ -161,6 +161,16 @@ var Tile = Class.extend({
   },
 
   /**
+   * Tells if the tile has no occupants in it
+   *
+   * @method isEmpty
+   * @returns Boolean
+   */
+  isEmpty: function() {
+    return this.entities.length === 0;
+  },
+
+  /**
    * Checks if the target tile is an element of the `.walls` array.
    *
    * @method blocked
