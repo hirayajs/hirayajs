@@ -175,13 +175,14 @@ var Level = GetterSetter.extend({
   moveEntity: function(entity, position) {
     var tile = this.tiles.get(position.x, position.y);
     if (!tile) return;
+    // emit a movingEntity event hook
+    this.movingEntity(entity, entity.tile, tile);
     // make sure to vacate the entity from the tile first
     var prevTile = entity.tile;
     if (prevTile) prevTile.vacate(entity);
     // occupy the tile
     tile.occupy(entity);
     this.movedEntity(entity, tile, prevTile);
-    this.emit('event', 'movedEntity', entity, tile, prevTile);
   },
 
   /**
@@ -202,6 +203,19 @@ var Level = GetterSetter.extend({
    * @param {Hiraya.Tile} prevTile previous tile before it was moved
    */
   movedEntity: function(entity, tile, prevTile) {
+    this.emit('event', 'movedEntity', entity, tile, prevTile);
+  },
+
+  /**
+   * When an entity is beginning to move
+   *
+   * @event movingEntity
+   * @param {Hiraya.Entity} entity The entity in question
+   * @param {Hiraya.Tile} startTile tile that the entity will start from
+   * @param {Hiraya.Tile} endTile tile that the entity will go to
+   */
+  movingEntity: function(entity, startTile, endTile) {
+    this.emit('event', 'movingEntity', entity, startTile, endTile);
   }
 
 

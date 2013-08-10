@@ -93,8 +93,13 @@ var Tile = Class.extend({
   },
 
   init: function() {
-    this.entities = [];
+    this.f = 0;
+    this.g = 0;
+    this.h = 0;
     this.cost = -1;
+    this.parent = null;
+    this.type = null;
+    this.entities = [];
   },
 
   /**

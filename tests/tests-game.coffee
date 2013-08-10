@@ -120,13 +120,24 @@ describe 'hiraya-game', ->
           tile:
             x: 1
             y: 1
-    describe '#movedEntity event hook', ->
-      it 'should invoke movedEntity when an entity is added along with the current tile and previous tile as arguments', (done) ->
+    describe '#movedEntity and #movingEntity event hook', ->
+      it 'should invoke movedEntity and movingEntity on level.moveEntity command', (done) ->
+        hasMovingEvent = false
+        hasMovedEvent = false
+        check = -> if hasMovedEvent and hasMovingEvent then do done
         fromTile = x: 0, y: 0
         toTile = x: 0, y: 1
         level = Hiraya.Level.create
           movedEntity: (entity, tile, prevTile) ->
-            do done
+            if entity and tile
+              hasMovedEvent = true
+              do check
+          movingEntity: (entity, start, end) ->
+            console.log 'ooooo'
+            if entity and start and end
+              hasMovingEvent = true
+              do check
+
         level.addEntity level.createEntity
           id: 'test'
           tile:

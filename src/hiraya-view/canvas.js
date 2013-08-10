@@ -217,18 +217,6 @@ var Canvas = Emitter.extend({
   },
 
   /**
-   * @method addSprite
-   * @param {Hiraya.Sprite} sprite
-   * @chainable
-   */
-  addSprite: function(sprite) {
-    var layer = this.getLayer('sprites');
-    layer.addChild(sprite.view);
-    sprite.spawn();
-    return this;
-  },
-
-  /**
    * Adds a createjs.BitmapAnimation object to a layer.
    *
    * @param {String} layerName

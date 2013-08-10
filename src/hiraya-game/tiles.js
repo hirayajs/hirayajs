@@ -74,10 +74,11 @@ var Tiles = Class.extend({
     for(var countY = 0; countY < this.rows; countY++) {
       this._matrix.push([]);
       for(var countX = 0; countX < this.columns; countX++) {
-        var tile = this.Tile.create();
-        tile.x = countX;
-        tile.y = countY;
-        tile.z = this._total;
+        var tile = this.Tile.create({
+          x: countX,
+          y: countY,
+          z: this._total
+        });
         this._matrix[countY].push(tile);
         this._total++;
       }
@@ -202,7 +203,7 @@ var Tiles = Class.extend({
       neighbors = this.adjacent(currentNode);
       for(i=0, _len = neighbors.length; i < _len; i++) {
         neighbor = neighbors[i];
-        if (closedList.indexOf(neighbor) > -1) {
+        if (closedList.indexOf(neighbor) > -1 || neighbor.wall || neighbor.isOccupied() /** || currentNode.blocked(neighbor) || neighbor.blocked(currentNode) **/ ) {
           continue;
         }
         scoreG = currentNode.g + 1;

@@ -197,9 +197,16 @@
           }));
         });
       });
-      return describe('#movedEntity event hook', function() {
-        return it('should invoke movedEntity when an entity is added along with the current tile and previous tile as arguments', function(done) {
-          var entity, fromTile, level, tile, toTile;
+      return describe('#movedEntity and #movingEntity event hook', function() {
+        return it('should invoke movedEntity and movingEntity on level.moveEntity command', function(done) {
+          var check, entity, fromTile, hasMovedEvent, hasMovingEvent, level, tile, toTile;
+          hasMovingEvent = false;
+          hasMovedEvent = false;
+          check = function() {
+            if (hasMovedEvent && hasMovingEvent) {
+              return done();
+            }
+          };
           fromTile = {
             x: 0,
             y: 0
@@ -210,7 +217,17 @@
           };
           level = Hiraya.Level.create({
             movedEntity: function(entity, tile, prevTile) {
-              return done();
+              if (entity && tile) {
+                hasMovedEvent = true;
+                return check();
+              }
+            },
+            movingEntity: function(entity, start, end) {
+              console.log('ooooo');
+              if (entity && start && end) {
+                hasMovingEvent = true;
+                return check();
+              }
             }
           });
           level.addEntity(level.createEntity({
