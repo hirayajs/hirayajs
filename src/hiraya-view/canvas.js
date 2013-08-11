@@ -4,7 +4,7 @@
  */
 
 var Emitter = require('../hiraya-core/emitter');
-var createjs = typeof window === 'object' ? window.createjs : null;
+var createjs = typeof window === 'object' ? window.createjs : {};
 
 /**
  * Canvas manages the stage and all things happening in them.
@@ -214,6 +214,14 @@ var Canvas = Emitter.extend({
   render: function(event) {
     if (event && event.paused) return;
     this._stage.update();
+    this.update();
+  },
+
+  /**
+   * Event hook for subscribing to a tick event.
+   * @event update
+   */
+  update: function() {
   },
 
   /**

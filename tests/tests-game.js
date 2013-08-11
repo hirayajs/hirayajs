@@ -223,7 +223,6 @@
               }
             },
             movingEntity: function(entity, start, end) {
-              console.log('ooooo');
               if (entity && start && end) {
                 hasMovingEvent = true;
                 return check();

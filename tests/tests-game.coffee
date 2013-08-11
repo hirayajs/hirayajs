@@ -133,7 +133,6 @@ describe 'hiraya-game', ->
               hasMovedEvent = true
               do check
           movingEntity: (entity, start, end) ->
-            console.log 'ooooo'
             if entity and start and end
               hasMovingEvent = true
               do check

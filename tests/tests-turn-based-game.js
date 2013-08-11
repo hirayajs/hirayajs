@@ -307,7 +307,7 @@
           target = this.proximity(entity, 'range');
           target = target[0];
           if (target) {
-            entity.attack(target);
+            this.attackEntity(entity, target);
           } else {
             nearestEntityTileFrom = this.nearestEntityTileFrom(entity);
             nearestEntityTileFrom.occupy(entity);

@@ -15,6 +15,7 @@ var Hiraya = {
   TilesHex: require('./hiraya-game/tiles-hex'),
   Level: require('./hiraya-game/level'),
   LevelTurnBased: require('./hiraya-game/level-turnbased'),
+  Command: require('./hiraya-game/command'),
 
   /** hiraya-view **/
   Canvas: require('./hiraya-view/canvas'),

@@ -16,6 +16,7 @@ var Hiraya = {
   TilesHex: require('./hiraya-game/tiles-hex'),
   Level: require('./hiraya-game/level'),
   LevelTurnBased: require('./hiraya-game/level-turnbased'),
+  Command: require('./hiraya-game/command'),
 
   /** hiraya-view **/
   Canvas: require('./hiraya-view/canvas'),
@@ -32,7 +33,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/tiles-hex":12,"./hiraya-game/level-turnbased":13,"./hiraya-game/level":14,"./hiraya-view/canvas":15,"./hiraya-view/sprite":16,"./hiraya-util/hexagon-util":17}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/tiles-hex":12,"./hiraya-game/level":13,"./hiraya-game/command":14,"./hiraya-game/level-turnbased":15,"./hiraya-view/canvas":16,"./hiraya-view/sprite":17,"./hiraya-util/hexagon-util":18}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -191,7 +192,7 @@ var Class = extendClass(function(){}, {});
 
 module.exports = Class;
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-util
@@ -275,7 +276,7 @@ var HexagonUtil = {
 
 module.exports = HexagonUtil;
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -329,7 +330,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 (function(process){if (!process.EventEmitter) process.EventEmitter = function () {};
 
 var EventEmitter = exports.EventEmitter = process.EventEmitter;
@@ -515,124 +516,7 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 })(require("__browserify_process"))
-},{"__browserify_process":18}],3:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-core
- */
-
-
-var Class = require('./class');
-var EventEmitter = require('events').EventEmitter;
-
-/**
- * `Hiraya.Emitter` handles event-based callbacks.
- * For example if you wish to create an event manager that dispatches data
- * everytime a certain topic is called:
- *
- *      Game.topicEmitter = Hiraya.Emitter.create({
- *        newTopic: function(topic) {
- *          this.emit('newTopic', topic);
- *        }
- *      });
- *
- *      Game.topicEmitter.on('newTopic', function(topic) {
- *        console.log('Got a new topic:', topic);
- *      });
- *
- *      Game.topicEmitter.newTopic('entityCreate');
- *
- * @class Emitter
- * @extends Hiraya.Class
- * @namespace Hiraya
- */
-var Emitter = Class.extend({
-  init: function() {
-  },
-  /**
-   * Adds a listener to the emitter object
-   *
-   * @method on
-   * @param {String} topic 
-   * @param {Function} callback 
-   * @chainable
-   */
-  on: function() {
-    EventEmitter.prototype.on.apply(this, arguments);
-    return this;
-  },
-
-  /**
-   * Removes a listener from the emitter object
-   *
-   * @method off
-   * @param {String} topic
-   * @param {Function} callback
-   * @chainable
-   */
-  off: function(topic, callback) {
-    EventEmitter.prototype.removeListener.apply(this, arguments);
-    return this;
-  },
-
-
-  /**
-   * Removes all listeners or the topic specified
-   *
-   * @method offAll
-   * @param {String} [topic]
-   * @chainable
-   */
-  offAll: function() {
-    EventEmitter.prototype.removeAllListeners.apply(this, arguments);
-    return this;
-  },
-
-  /**
-   * Emits a topic contained in the emitter object
-   *
-   * @method emit
-   * @param {String} topic
-   * @param {Object|String} data*
-   * @chainable
-   */
-  emit: function() {
-    EventEmitter.prototype.emit.apply(this, arguments);
-    return this;
-  },
-
-  /**
-   * Subscribes to a topic only once
-   *
-   * @method once
-   * @param {String} topic
-   * @chainable
-   */
-  once: function() {
-    EventEmitter.prototype.once.apply(this, arguments);
-    return this;
-  },
-
-
-  /**
-   * Remove an event listener
-   *
-   * @methoda removeListener
-   * @param {String} topic
-   * @param {Function} callback
-   * @private
-   * @chainable
-   */
-  removeListener: function() {
-    EventEmitter.prototype.removeListener.apply(this, arguments);
-    return this;
-  }
-});
-
-
-module.exports = Emitter;
-
-},{"events":19,"./class":2}],4:[function(require,module,exports){
+},{"__browserify_process":19}],4:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -908,7 +792,124 @@ var Stat = Class.extend({
 
 module.exports = Stat;
 
-},{"../hiraya-core/class":2}],6:[function(require,module,exports){
+},{"../hiraya-core/class":2}],3:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-core
+ */
+
+
+var Class = require('./class');
+var EventEmitter = require('events').EventEmitter;
+
+/**
+ * `Hiraya.Emitter` handles event-based callbacks.
+ * For example if you wish to create an event manager that dispatches data
+ * everytime a certain topic is called:
+ *
+ *      Game.topicEmitter = Hiraya.Emitter.create({
+ *        newTopic: function(topic) {
+ *          this.emit('newTopic', topic);
+ *        }
+ *      });
+ *
+ *      Game.topicEmitter.on('newTopic', function(topic) {
+ *        console.log('Got a new topic:', topic);
+ *      });
+ *
+ *      Game.topicEmitter.newTopic('entityCreate');
+ *
+ * @class Emitter
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Emitter = Class.extend({
+  init: function() {
+  },
+  /**
+   * Adds a listener to the emitter object
+   *
+   * @method on
+   * @param {String} topic 
+   * @param {Function} callback 
+   * @chainable
+   */
+  on: function() {
+    EventEmitter.prototype.on.apply(this, arguments);
+    return this;
+  },
+
+  /**
+   * Removes a listener from the emitter object
+   *
+   * @method off
+   * @param {String} topic
+   * @param {Function} callback
+   * @chainable
+   */
+  off: function(topic, callback) {
+    EventEmitter.prototype.removeListener.apply(this, arguments);
+    return this;
+  },
+
+
+  /**
+   * Removes all listeners or the topic specified
+   *
+   * @method offAll
+   * @param {String} [topic]
+   * @chainable
+   */
+  offAll: function() {
+    EventEmitter.prototype.removeAllListeners.apply(this, arguments);
+    return this;
+  },
+
+  /**
+   * Emits a topic contained in the emitter object
+   *
+   * @method emit
+   * @param {String} topic
+   * @param {Object|String} data*
+   * @chainable
+   */
+  emit: function() {
+    EventEmitter.prototype.emit.apply(this, arguments);
+    return this;
+  },
+
+  /**
+   * Subscribes to a topic only once
+   *
+   * @method once
+   * @param {String} topic
+   * @chainable
+   */
+  once: function() {
+    EventEmitter.prototype.once.apply(this, arguments);
+    return this;
+  },
+
+
+  /**
+   * Remove an event listener
+   *
+   * @methoda removeListener
+   * @param {String} topic
+   * @param {Function} callback
+   * @private
+   * @chainable
+   */
+  removeListener: function() {
+    EventEmitter.prototype.removeListener.apply(this, arguments);
+    return this;
+  }
+});
+
+
+module.exports = Emitter;
+
+},{"events":20,"./class":2}],6:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1092,7 +1093,7 @@ Entity.id = 0;
 
 module.exports = Entity;
 
-},{"../hiraya-core/getter-setter":20,"./stats":6}],9:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":21,"./stats":6}],9:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1160,7 +1161,7 @@ var Game = Emitter.extend({
 
 module.exports = Game;
 
-},{"../hiraya-core/emitter":3,"../hiraya-game/level":14,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
+},{"../hiraya-core/emitter":3,"../hiraya-game/level":13,"../hiraya-game/tiles":11}],10:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -1914,6 +1915,307 @@ module.exports = TilesHex;
  */
 
 
+var GetterSetter = require('../hiraya-core/getter-setter');
+var Collection = require('../hiraya-core/collection');
+var Entity = require('./entity');
+var Tiles = require('./tiles');
+var Command = require('./command');
+
+/**
+ * `Hiraya.Level` manages the game logic and entity interaction.
+ *
+ * ### Events
+ *
+ * - `addedEntity`
+ *
+ * @class Level
+ * @extends Hiraya.GetterSetter
+ * @namespace Hiraya
+ */
+var Level = GetterSetter.extend({
+  /**
+   * @property entities
+   * @type {Hiraya.Collection}
+   */
+  entities: null,
+
+  /**
+   * The Entity class for this level
+   * @property Entity
+   * @type {Hiraya.Entity}
+   */
+  Entity: Entity,
+
+  /**
+   * Dictionary of all the entities in this level
+   * @property _entityIDs
+   * @type {Object}
+   * @private
+   */
+  _entityIDs: {},
+
+  /**
+   * The Tiles class for this level
+   * @property Tiles
+   * @type {Hiraya.Tiles}
+   */
+  Tiles: Tiles,
+
+  /**
+   * Initialization
+   * @method init
+   */
+  init: function() {
+    this.tiles = this.Tiles.create();
+    this.entities = Collection.create();
+    this._super();
+    this.ready();
+  },
+
+  /**
+   * Emitted after initialization
+   *
+   * @event ready
+   */
+  ready: function() {
+    this.emit('event', 'ready');
+  },
+
+  /**
+   * Adds an entity into the collection.
+   *
+   * Following is an example format:
+   *
+   *     var entity = level.createEntity({
+   *       name: 'Swordsman',
+   *       stats: {
+   *         health: [500, 1000] // value, max
+   *         attack: [100] // value, max
+   *       }
+   *     });
+   *     level.addEntity(entity);
+   *
+   * @method addEntity
+   * @param {Hiraya.Entity} entity
+   * @chainable
+   */
+  addEntity: function(entity) {
+    // attributes.stats gets overwritten in library
+    this.entities.add(entity);
+    this.addedEntity(entity);
+    this.emit('event', 'addedEntity', entity);
+    if (entity.id) {
+      this._entityIDs[entity.id] = entity;
+    }
+    return this;
+  },
+
+  /**
+   * Removes an entity from the level.
+   *
+   * @method removeEntity
+   * @param {Hiraya.Entity} entity
+   * @chainable
+   */
+  removeEntity: function(entity) {
+    if (entity) {
+      this.entities.remove(entity);
+      if (this._entityIDs[entity.id] === entity) {
+        delete this._entityIDs[entity.id];
+      }
+    }
+    return this;
+  },
+
+  /**
+   * Retrieves an entity based on ID
+   *
+   * @method getEntity
+   * @param {String} id
+   */
+  getEntity: function(id) {
+    return this._entityIDs[id];
+  },
+
+  /**
+   * Creates a `Hiraya.Entity` from a class. Use this to override the classname you wish to use.
+   *
+   * @method createEntity
+   * @param {Object} attributes
+   * @returns Hiraya.Entity
+   */
+  createEntity: function(attributes) {
+    // create a clone of the attribute object
+    var clone = JSON.parse(JSON.stringify(attributes));
+    var stats = attributes.stats;
+    var tile = attributes.tile;
+
+    delete clone.stats;
+    delete clone.tile;
+    var entity = this.Entity.create(clone);
+
+    // attribute parsing
+    if (attributes) {
+      // parse stats
+      if (stats) {
+        for (var key in stats) {
+          if (stats.hasOwnProperty(key)) {
+            var stat = stats[key];
+            entity.stats.set(key, stat[0], stat[1]);
+          }
+        }
+      }
+      // parse tile position of the entity
+      if (tile) {
+        var entityTile = this.tiles.get(tile.x, tile.y);
+        if (entityTile) {
+          entityTile.occupy(entity);
+        }
+      }
+    }
+
+    return entity;
+  },
+
+  /**
+   * Moves an entity to a tile in the level.
+   *
+   * @method moveEntity
+   * @param {Hiraya.Entity} entity
+   * @param {Object} position
+   */
+  moveEntity: function(entity, position) {
+    var tile = this.tiles.get(position.x, position.y);
+    if (!tile) return;
+    // emit a movingEntity event hook
+    this.movingEntity(entity, entity.tile, tile);
+    // make sure to vacate the entity from the tile first
+    var prevTile = entity.tile;
+    if (prevTile) prevTile.vacate(entity);
+    // occupy the tile
+    tile.occupy(entity);
+    this.movedEntity(entity, tile, prevTile);
+  },
+
+  /**
+   * Instructs the entity to make an action to another entity.
+   *
+   * @method actEntity
+   * @param {Hiraya.Entity} entity
+   */
+  actEntity: function(entity, targetEntity) {
+    var command = Command.create({
+      damage: entity.stats.attack.value,
+      name: 'attack'
+    });
+    this.actingEntity(entity, targetEntity, command);
+    entity.attack(targetEntity);
+    this.actedEntity(entity, targetEntity, command);
+  },
+
+  /**
+   * When an entity is added.
+   *
+   * @event addedEntity
+   * @param {Hiraya.Entity} entity
+   */
+  addedEntity: function(entity) {
+  },
+
+  /**
+   * When an entity has moved
+   *
+   * @event movedEntity
+   * @param {Hiraya.Entity} entity The entity in question
+   * @param {Hiraya.Tile} tile tile that the entity has moved
+   * @param {Hiraya.Tile} prevTile previous tile before it was moved
+   */
+  movedEntity: function(entity, tile, prevTile) {
+    this.emit('event', 'movedEntity', entity, tile, prevTile);
+  },
+
+  /**
+   * When an entity is beginning to move
+   *
+   * @event movingEntity
+   * @param {Hiraya.Entity} entity The entity in question
+   * @param {Hiraya.Tile} startTile tile that the entity will start from
+   * @param {Hiraya.Tile} endTile tile that the entity will go to
+   */
+  movingEntity: function(entity, startTile, endTile) {
+    this.emit('event', 'movingEntity', entity, startTile, endTile);
+  },
+
+  /**
+   * @event actingEntity
+   * @param {Hiraya.Entity} entity
+   * @param {Hiraya.Entity} targetEntity
+   * @param {Hiraya.Command} command
+   */
+  actingEntity: function(entity, targetEntity, command) {
+    this.emit('event', 'actingEntity', entity, targetEntity, command);
+  },
+
+  /**
+   * @event actedEntity
+   * @param {Hiraya.Entity} entity
+   * @param {Hiraya.Entity} targetEntity
+   * @param {Hiraya.Command} command
+   */
+  actedEntity: function(entity, targetEntity, command) {
+    this.emit('event', 'actedEntity', entity, targetEntity, command);
+  }
+
+
+});
+
+module.exports = Level;
+
+},{"../hiraya-core/getter-setter":21,"../hiraya-core/collection":4,"./entity":8,"./tiles":11,"./command":14}],14:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+var Class = require('../hiraya-core/class');
+
+/**
+ * A class for creating commands for entities. Use this to construct
+ * skills, abilities, etc.
+ *
+ * @class Command
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Command = Class.extend({
+  /**
+   * Name of the command
+   *
+   * @property name
+   * @type {String}
+   */
+  name: null,
+
+  /**
+   * Base damage of this command
+   *
+   * @property damage
+   * @type {Number}
+   * @default 0
+   */
+  damage: 0
+
+});
+
+module.exports = Command;
+
+},{"../hiraya-core/class":2}],15:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+
 var Level = require('./level');
 var EntityTurnBased = require('./entity-turnbased');
 
@@ -2120,240 +2422,14 @@ var LevelTurnBased = Level.extend({
 
 module.exports = LevelTurnBased;
 
-},{"./entity-turnbased":7,"./level":14}],14:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
-
-
-var GetterSetter = require('../hiraya-core/getter-setter');
-var Collection = require('../hiraya-core/collection');
-var Entity = require('./entity');
-var Tiles = require('./tiles');
-
-/**
- * `Hiraya.Level` manages the game logic and entity interaction.
- *
- * ### Events
- *
- * - `addedEntity`
- *
- * @class Level
- * @extends Hiraya.GetterSetter
- * @namespace Hiraya
- */
-var Level = GetterSetter.extend({
-  /**
-   * @property entities
-   * @type {Hiraya.Collection}
-   */
-  entities: null,
-
-  /**
-   * The Entity class for this level
-   * @property Entity
-   * @type {Hiraya.Entity}
-   */
-  Entity: Entity,
-
-  /**
-   * Dictionary of all the entities in this level
-   * @property _entityIDs
-   * @type {Object}
-   * @private
-   */
-  _entityIDs: {},
-
-  /**
-   * The Tiles class for this level
-   * @property Tiles
-   * @type {Hiraya.Tiles}
-   */
-  Tiles: Tiles,
-
-  /**
-   * Initialization
-   * @method init
-   */
-  init: function() {
-    this.tiles = this.Tiles.create();
-    this.entities = Collection.create();
-    this._super();
-    this.ready();
-  },
-
-  /**
-   * Emitted after initialization
-   *
-   * @event ready
-   */
-  ready: function() {
-    this.emit('event', 'ready');
-  },
-
-  /**
-   * Adds an entity into the collection.
-   *
-   * Following is an example format:
-   *
-   *     var entity = level.createEntity({
-   *       name: 'Swordsman',
-   *       stats: {
-   *         health: [500, 1000] // value, max
-   *         attack: [100] // value, max
-   *       }
-   *     });
-   *     level.addEntity(entity);
-   *
-   * @method addEntity
-   * @param {Hiraya.Entity} entity
-   * @chainable
-   */
-  addEntity: function(entity) {
-    // attributes.stats gets overwritten in library
-    this.entities.add(entity);
-    this.addedEntity(entity);
-    this.emit('event', 'addedEntity', entity);
-    if (entity.id) {
-      this._entityIDs[entity.id] = entity;
-    }
-    return this;
-  },
-
-  /**
-   * Removes an entity from the level.
-   *
-   * @method removeEntity
-   * @param {Hiraya.Entity} entity
-   * @chainable
-   */
-  removeEntity: function(entity) {
-    if (entity) {
-      this.entities.remove(entity);
-      if (this._entityIDs[entity.id] === entity) {
-        delete this._entityIDs[entity.id];
-      }
-    }
-    return this;
-  },
-
-  /**
-   * Retrieves an entity based on ID
-   *
-   * @method getEntity
-   * @param {String} id
-   */
-  getEntity: function(id) {
-    return this._entityIDs[id];
-  },
-
-  /**
-   * Creates a `Hiraya.Entity` from a class. Use this to override the classname you wish to use.
-   *
-   * @method createEntity
-   * @param {Object} attributes
-   * @returns Hiraya.Entity
-   */
-  createEntity: function(attributes) {
-    // create a clone of the attribute object
-    var clone = JSON.parse(JSON.stringify(attributes));
-    var stats = attributes.stats;
-    var tile = attributes.tile;
-
-    delete clone.stats;
-    delete clone.tile;
-    var entity = this.Entity.create(clone);
-
-    // attribute parsing
-    if (attributes) {
-      // parse stats
-      if (stats) {
-        for (var key in stats) {
-          if (stats.hasOwnProperty(key)) {
-            var stat = stats[key];
-            entity.stats.set(key, stat[0], stat[1]);
-          }
-        }
-      }
-      // parse tile position of the entity
-      if (tile) {
-        var entityTile = this.tiles.get(tile.x, tile.y);
-        if (entityTile) {
-          entityTile.occupy(entity);
-        }
-      }
-    }
-
-    return entity;
-  },
-
-  /**
-   * Moves an entity to a tile in the level.
-   *
-   * @method moveEntity
-   * @param {Hiraya.Entity} entity
-   * @param {Object} position
-   */
-  moveEntity: function(entity, position) {
-    var tile = this.tiles.get(position.x, position.y);
-    if (!tile) return;
-    // emit a movingEntity event hook
-    this.movingEntity(entity, entity.tile, tile);
-    // make sure to vacate the entity from the tile first
-    var prevTile = entity.tile;
-    if (prevTile) prevTile.vacate(entity);
-    // occupy the tile
-    tile.occupy(entity);
-    this.movedEntity(entity, tile, prevTile);
-  },
-
-  /**
-   * When an entity is added.
-   *
-   * @event addedEntity
-   * @param {Hiraya.Entity} entity
-   */
-  addedEntity: function(entity) {
-  },
-
-  /**
-   * When an entity has moved
-   *
-   * @event movedEntity
-   * @param {Hiraya.Entity} entity The entity in question
-   * @param {Hiraya.Tile} tile tile that the entity has moved
-   * @param {Hiraya.Tile} prevTile previous tile before it was moved
-   */
-  movedEntity: function(entity, tile, prevTile) {
-    this.emit('event', 'movedEntity', entity, tile, prevTile);
-  },
-
-  /**
-   * When an entity is beginning to move
-   *
-   * @event movingEntity
-   * @param {Hiraya.Entity} entity The entity in question
-   * @param {Hiraya.Tile} startTile tile that the entity will start from
-   * @param {Hiraya.Tile} endTile tile that the entity will go to
-   */
-  movingEntity: function(entity, startTile, endTile) {
-    this.emit('event', 'movingEntity', entity, startTile, endTile);
-  }
-
-
-});
-
-module.exports = Level;
-
-},{"../hiraya-core/getter-setter":20,"../hiraya-core/collection":4,"./entity":8,"./tiles":11}],15:[function(require,module,exports){
+},{"./entity-turnbased":7,"./level":13}],16:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-view
  */
 
 var Emitter = require('../hiraya-core/emitter');
-var createjs = typeof window === 'object' ? window.createjs : null;
+var createjs = typeof window === 'object' ? window.createjs : {};
 
 /**
  * Canvas manages the stage and all things happening in them.
@@ -2563,6 +2639,14 @@ var Canvas = Emitter.extend({
   render: function(event) {
     if (event && event.paused) return;
     this._stage.update();
+    this.update();
+  },
+
+  /**
+   * Event hook for subscribing to a tick event.
+   * @event update
+   */
+  update: function() {
   },
 
   /**
@@ -2775,7 +2859,8 @@ var Canvas = Emitter.extend({
 
 module.exports = Canvas;
 
-},{"../hiraya-core/emitter":3}],16:[function(require,module,exports){
+},{"../hiraya-core/emitter":3}],17:[function(require,module,exports){
+var createjs = typeof window === 'object' ? window.createjs : {};
 /**
  * @module hiraya
  * @submodule hiraya-view
@@ -2790,6 +2875,22 @@ module.exports = Canvas;
  */
 var Emitter = require('../hiraya-core/emitter');
 var Sprite = Emitter.extend({
+
+  /**
+   * The createjs.Tween bridge
+   *
+   * @property Tween
+   * @type {createjs.Tween}
+   */
+  Tween: createjs.Tween,
+
+  /**
+   * The createjs.Ease bridge
+   *
+   * @property Ease
+   * @type {createjs.Ease}
+   */
+  Ease: createjs.Ease,
 
   /**
    * Sprite sheet frameData for the createjs.SpriteSheet class.
@@ -2814,6 +2915,15 @@ var Sprite = Emitter.extend({
    * @type {createjs.BitmapAnimation} 
    */
   view: null,
+
+  /**
+   * Walk speed animation of the sprite.
+   *
+   * @property walkSpeed
+   * @type {Nimber}
+   * @default 500
+   */
+  walkSpeed: 500,
 
   init: function() {
     this.view = new createjs.Container();
@@ -2873,7 +2983,14 @@ var Sprite = Emitter.extend({
   },
 
   /**
-   * Sets the x and y coordinate of this sprite
+   * Sets the x and y coordinate of this sprite.
+   * You can optionally pass an object with the x and y values.
+   *
+   *    var sprite = Hiraya.Sprite.create();
+   *    sprite.pos({ x: 100, y: 100 });
+   *
+   *    // using it in conjunction with the hexagon util class
+   *    sprite.pos(Hiraya.HexagonUtil.coordinates({ x: 100, y: 200 }));
    *
    * @method pos
    * @param {Number} x
@@ -2881,28 +2998,34 @@ var Sprite = Emitter.extend({
    * @chainable
    */
   pos: function(x, y) {
-    this.x(x);
-    this.y(y);
+    if (typeof x === 'object') { // argument is being passed as an object coordinate
+      this.x(x.x);
+      this.y(x.y);
+    } else {
+      this.x(x);
+      this.y(y);
+    }
     return this;
   },
 
   /**
-   * Instruct the sprite to tread to a list of tiles
+   * Flips the sprite to the left side
    *
-   * @method tread
-   * @param {Array} arrayOfTiles
+   * @method faceLeft
    */
-  tread: function(arrayOfTiles) {
-    this.treadTiles(arrayOfTiles);
+  faceLeft: function() {
+    this.vector = -1;
+    this.view.scaleX *= this.vector;
   },
 
   /**
-   * An event hook when the sprite is told to tread an array of tiles.
+   * Flips the sprite to the right side
    *
-   * @event treadTiles
-   * @param {Array} arrayOfTiles
+   * @method faceRight
    */
-  treadTiles: function(arrayOfTiles) {
+  faceRight: function() {
+    this.vector = 1;
+    this.view.scaleX *= this.vector;
   },
 
   /**
@@ -2962,16 +3085,52 @@ var Sprite = Emitter.extend({
    *
    * @event attackStart
    * @param {String} name
-   * @optional
    */
   attackStart: function(name) {
+  },
+
+  /**
+   * An event hook that's fired when this sprite is being targetted.
+   * The command of the action is passed to let the sprite know if it should
+   * perform certain animations based on the command attributes.
+   *
+   * For example, if the sprite is receiving a command that involves stealth, it
+   * can optionally not perform a defend stance animation.
+   *
+   * @event defendStart
+   * @param {Hiraya.Sprite} sprite the sprite performing an action on this unit.
+   * @param {Hiraya.Command} command the command
+   */
+  defendStart: function(sprite, command) {
+  },
+
+  /**
+   * An event hook that's fired when the sprite is done defending itself. The command
+   * used for the attack is passed to let the sprite know if it should perform certain
+   * animations based on command attributes.
+   *
+   * For example, if the sprite gets a command with stun attribute, the sprite
+   * can optionally perform a "freezing" animation.
+   *
+   * @event defendEnd
+   * @param {Hiraya.Sprite} sprite the sprite performing an action on this unit.
+   * @param {Hiraya.Command} command the command
+   */
+  defendEnd: function(sprite, command) {
+  },
+
+  /**
+   * When the sprite is damaged or being hit.
+   * @event hit
+   */
+  hit: function() {
   }
 });
 
 
 module.exports = Sprite;
 
-},{"../hiraya-core/emitter":3}],20:[function(require,module,exports){
+},{"../hiraya-core/emitter":3}],21:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core

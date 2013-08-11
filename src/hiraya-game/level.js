@@ -8,6 +8,7 @@ var GetterSetter = require('../hiraya-core/getter-setter');
 var Collection = require('../hiraya-core/collection');
 var Entity = require('./entity');
 var Tiles = require('./tiles');
+var Command = require('./command');
 
 /**
  * `Hiraya.Level` manages the game logic and entity interaction.
@@ -186,6 +187,22 @@ var Level = GetterSetter.extend({
   },
 
   /**
+   * Instructs the entity to make an action to another entity.
+   *
+   * @method actEntity
+   * @param {Hiraya.Entity} entity
+   */
+  actEntity: function(entity, targetEntity) {
+    var command = Command.create({
+      damage: entity.stats.attack.value,
+      name: 'attack'
+    });
+    this.actingEntity(entity, targetEntity, command);
+    entity.attack(targetEntity);
+    this.actedEntity(entity, targetEntity, command);
+  },
+
+  /**
    * When an entity is added.
    *
    * @event addedEntity
@@ -216,6 +233,26 @@ var Level = GetterSetter.extend({
    */
   movingEntity: function(entity, startTile, endTile) {
     this.emit('event', 'movingEntity', entity, startTile, endTile);
+  },
+
+  /**
+   * @event actingEntity
+   * @param {Hiraya.Entity} entity
+   * @param {Hiraya.Entity} targetEntity
+   * @param {Hiraya.Command} command
+   */
+  actingEntity: function(entity, targetEntity, command) {
+    this.emit('event', 'actingEntity', entity, targetEntity, command);
+  },
+
+  /**
+   * @event actedEntity
+   * @param {Hiraya.Entity} entity
+   * @param {Hiraya.Entity} targetEntity
+   * @param {Hiraya.Command} command
+   */
+  actedEntity: function(entity, targetEntity, command) {
+    this.emit('event', 'actedEntity', entity, targetEntity, command);
   }
 
 

@@ -165,7 +165,7 @@ describe.skip 'An automated game test', ->
         target = @proximity entity, 'range'
         target = target[0]
         if target
-          entity.attack target
+          @attackEntity entity, target
         else
           nearestEntityTileFrom = @nearestEntityTileFrom entity
           nearestEntityTileFrom.occupy entity
