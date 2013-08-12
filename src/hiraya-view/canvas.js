@@ -429,6 +429,43 @@ var Canvas = Emitter.extend({
    */
   y: function() {
     return this._y;
+  },
+
+
+  /**
+   * Centers the board
+   *
+   * @method centerBoard
+   */
+  centerBoard: function() {
+    var columns = this.level.tiles.columns;
+    var rows = this.level.tiles.rows;
+    var dimensions = Hiraya.HexagonUtil.dimensions(columns, rows);
+    this.pan(this.width * 0.5 - dimensions.width * 0.5, this.height * 0.5 - dimensions.height * 0.5 + 50);
+  },
+
+  /**
+   * Sorts the depth for the sprite with its associated tile as the argument.
+   *
+   * @method sortSpriteDepth
+   * @param {Hiraya.Sprite} sprite
+   * @param {Hiraya.Tile} tile
+   */
+  sortSpriteDepth: function(sprite, tile) {
+    var layer = this.getLayer('sprites');
+    if (!layer) return;
+    if (!sprite) return;
+    if (!tile || isNaN(tile.z)) return;
+    layer.removeChild(sprite.view);
+    sprite.view.z = tile.z;
+    var length = layer.getNumChildren();
+    for(var i=0; i<length; i++) {
+      var child = layer.getChildAt(i);
+      if (child.z >= sprite.view.z) {
+        break;
+      }
+    }
+    layer.addChildAt(sprite.view, i);
   }
 });
 

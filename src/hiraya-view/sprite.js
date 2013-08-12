@@ -153,7 +153,7 @@ var Sprite = Emitter.extend({
    */
   faceLeft: function() {
     this.vector = -1;
-    this.view.scaleX *= this.vector;
+    this.view.scaleX = Math.abs(this.view.scaleX) * this.vector;
   },
 
   /**
@@ -163,7 +163,7 @@ var Sprite = Emitter.extend({
    */
   faceRight: function() {
     this.vector = 1;
-    this.view.scaleX *= this.vector;
+    this.view.scaleX = Math.abs(this.view.scaleX) * this.vector;
   },
 
   /**

@@ -33,7 +33,7 @@ if (typeof window === 'object') {
 
 module.exports = Hiraya;
 
-},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/tiles-hex":12,"./hiraya-game/level":13,"./hiraya-game/command":14,"./hiraya-game/level-turnbased":15,"./hiraya-view/canvas":16,"./hiraya-view/sprite":17,"./hiraya-util/hexagon-util":18}],2:[function(require,module,exports){
+},{"./hiraya-core/class":2,"./hiraya-core/emitter":3,"./hiraya-core/collection":4,"./hiraya-game/stat":5,"./hiraya-game/stats":6,"./hiraya-game/entity-turnbased":7,"./hiraya-game/entity":8,"./hiraya-game/game":9,"./hiraya-game/tile":10,"./hiraya-game/tiles":11,"./hiraya-game/tiles-hex":12,"./hiraya-game/level":13,"./hiraya-game/level-turnbased":14,"./hiraya-game/command":15,"./hiraya-view/canvas":16,"./hiraya-view/sprite":17,"./hiraya-util/hexagon-util":18}],2:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-core
@@ -644,7 +644,124 @@ var Collection = Emitter.extend({
 
 module.exports = Collection;
 
-},{"./emitter":3}],5:[function(require,module,exports){
+},{"./emitter":3}],3:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-core
+ */
+
+
+var Class = require('./class');
+var EventEmitter = require('events').EventEmitter;
+
+/**
+ * `Hiraya.Emitter` handles event-based callbacks.
+ * For example if you wish to create an event manager that dispatches data
+ * everytime a certain topic is called:
+ *
+ *      Game.topicEmitter = Hiraya.Emitter.create({
+ *        newTopic: function(topic) {
+ *          this.emit('newTopic', topic);
+ *        }
+ *      });
+ *
+ *      Game.topicEmitter.on('newTopic', function(topic) {
+ *        console.log('Got a new topic:', topic);
+ *      });
+ *
+ *      Game.topicEmitter.newTopic('entityCreate');
+ *
+ * @class Emitter
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Emitter = Class.extend({
+  init: function() {
+  },
+  /**
+   * Adds a listener to the emitter object
+   *
+   * @method on
+   * @param {String} topic 
+   * @param {Function} callback 
+   * @chainable
+   */
+  on: function() {
+    EventEmitter.prototype.on.apply(this, arguments);
+    return this;
+  },
+
+  /**
+   * Removes a listener from the emitter object
+   *
+   * @method off
+   * @param {String} topic
+   * @param {Function} callback
+   * @chainable
+   */
+  off: function(topic, callback) {
+    EventEmitter.prototype.removeListener.apply(this, arguments);
+    return this;
+  },
+
+
+  /**
+   * Removes all listeners or the topic specified
+   *
+   * @method offAll
+   * @param {String} [topic]
+   * @chainable
+   */
+  offAll: function() {
+    EventEmitter.prototype.removeAllListeners.apply(this, arguments);
+    return this;
+  },
+
+  /**
+   * Emits a topic contained in the emitter object
+   *
+   * @method emit
+   * @param {String} topic
+   * @param {Object|String} data*
+   * @chainable
+   */
+  emit: function() {
+    EventEmitter.prototype.emit.apply(this, arguments);
+    return this;
+  },
+
+  /**
+   * Subscribes to a topic only once
+   *
+   * @method once
+   * @param {String} topic
+   * @chainable
+   */
+  once: function() {
+    EventEmitter.prototype.once.apply(this, arguments);
+    return this;
+  },
+
+
+  /**
+   * Remove an event listener
+   *
+   * @methoda removeListener
+   * @param {String} topic
+   * @param {Function} callback
+   * @private
+   * @chainable
+   */
+  removeListener: function() {
+    EventEmitter.prototype.removeListener.apply(this, arguments);
+    return this;
+  }
+});
+
+
+module.exports = Emitter;
+
+},{"events":20,"./class":2}],5:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -792,124 +909,7 @@ var Stat = Class.extend({
 
 module.exports = Stat;
 
-},{"../hiraya-core/class":2}],3:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-core
- */
-
-
-var Class = require('./class');
-var EventEmitter = require('events').EventEmitter;
-
-/**
- * `Hiraya.Emitter` handles event-based callbacks.
- * For example if you wish to create an event manager that dispatches data
- * everytime a certain topic is called:
- *
- *      Game.topicEmitter = Hiraya.Emitter.create({
- *        newTopic: function(topic) {
- *          this.emit('newTopic', topic);
- *        }
- *      });
- *
- *      Game.topicEmitter.on('newTopic', function(topic) {
- *        console.log('Got a new topic:', topic);
- *      });
- *
- *      Game.topicEmitter.newTopic('entityCreate');
- *
- * @class Emitter
- * @extends Hiraya.Class
- * @namespace Hiraya
- */
-var Emitter = Class.extend({
-  init: function() {
-  },
-  /**
-   * Adds a listener to the emitter object
-   *
-   * @method on
-   * @param {String} topic 
-   * @param {Function} callback 
-   * @chainable
-   */
-  on: function() {
-    EventEmitter.prototype.on.apply(this, arguments);
-    return this;
-  },
-
-  /**
-   * Removes a listener from the emitter object
-   *
-   * @method off
-   * @param {String} topic
-   * @param {Function} callback
-   * @chainable
-   */
-  off: function(topic, callback) {
-    EventEmitter.prototype.removeListener.apply(this, arguments);
-    return this;
-  },
-
-
-  /**
-   * Removes all listeners or the topic specified
-   *
-   * @method offAll
-   * @param {String} [topic]
-   * @chainable
-   */
-  offAll: function() {
-    EventEmitter.prototype.removeAllListeners.apply(this, arguments);
-    return this;
-  },
-
-  /**
-   * Emits a topic contained in the emitter object
-   *
-   * @method emit
-   * @param {String} topic
-   * @param {Object|String} data*
-   * @chainable
-   */
-  emit: function() {
-    EventEmitter.prototype.emit.apply(this, arguments);
-    return this;
-  },
-
-  /**
-   * Subscribes to a topic only once
-   *
-   * @method once
-   * @param {String} topic
-   * @chainable
-   */
-  once: function() {
-    EventEmitter.prototype.once.apply(this, arguments);
-    return this;
-  },
-
-
-  /**
-   * Remove an event listener
-   *
-   * @methoda removeListener
-   * @param {String} topic
-   * @param {Function} callback
-   * @private
-   * @chainable
-   */
-  removeListener: function() {
-    EventEmitter.prototype.removeListener.apply(this, arguments);
-    return this;
-  }
-});
-
-
-module.exports = Emitter;
-
-},{"events":20,"./class":2}],6:[function(require,module,exports){
+},{"../hiraya-core/class":2}],6:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -2171,45 +2171,7 @@ var Level = GetterSetter.extend({
 
 module.exports = Level;
 
-},{"../hiraya-core/getter-setter":21,"../hiraya-core/collection":4,"./entity":8,"./tiles":11,"./command":14}],14:[function(require,module,exports){
-/**
- * @module hiraya
- * @submodule hiraya-game
- */
-
-var Class = require('../hiraya-core/class');
-
-/**
- * A class for creating commands for entities. Use this to construct
- * skills, abilities, etc.
- *
- * @class Command
- * @extends Hiraya.Class
- * @namespace Hiraya
- */
-var Command = Class.extend({
-  /**
-   * Name of the command
-   *
-   * @property name
-   * @type {String}
-   */
-  name: null,
-
-  /**
-   * Base damage of this command
-   *
-   * @property damage
-   * @type {Number}
-   * @default 0
-   */
-  damage: 0
-
-});
-
-module.exports = Command;
-
-},{"../hiraya-core/class":2}],15:[function(require,module,exports){
+},{"../hiraya-core/getter-setter":21,"../hiraya-core/collection":4,"./entity":8,"./tiles":11,"./command":15}],14:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-game
@@ -2422,7 +2384,7 @@ var LevelTurnBased = Level.extend({
 
 module.exports = LevelTurnBased;
 
-},{"./entity-turnbased":7,"./level":13}],16:[function(require,module,exports){
+},{"./level":13,"./entity-turnbased":7}],16:[function(require,module,exports){
 /**
  * @module hiraya
  * @submodule hiraya-view
@@ -2854,12 +2816,87 @@ var Canvas = Emitter.extend({
    */
   y: function() {
     return this._y;
+  },
+
+
+  /**
+   * Centers the board
+   *
+   * @method centerBoard
+   */
+  centerBoard: function() {
+    var columns = this.level.tiles.columns;
+    var rows = this.level.tiles.rows;
+    var dimensions = Hiraya.HexagonUtil.dimensions(columns, rows);
+    this.pan(this.width * 0.5 - dimensions.width * 0.5, this.height * 0.5 - dimensions.height * 0.5 + 50);
+  },
+
+  /**
+   * Sorts the depth for the sprite with its associated tile as the argument.
+   *
+   * @method sortSpriteDepth
+   * @param {Hiraya.Sprite} sprite
+   * @param {Hiraya.Tile} tile
+   */
+  sortSpriteDepth: function(sprite, tile) {
+    var layer = this.getLayer('sprites');
+    if (!layer) return;
+    if (!sprite) return;
+    if (!tile || isNaN(tile.z)) return;
+    layer.removeChild(sprite.view);
+    sprite.view.z = tile.z;
+    var length = layer.getNumChildren();
+    for(var i=0; i<length; i++) {
+      var child = layer.getChildAt(i);
+      if (child.z >= sprite.view.z) {
+        break;
+      }
+    }
+    layer.addChildAt(sprite.view, i);
   }
 });
 
 module.exports = Canvas;
 
-},{"../hiraya-core/emitter":3}],17:[function(require,module,exports){
+},{"../hiraya-core/emitter":3}],15:[function(require,module,exports){
+/**
+ * @module hiraya
+ * @submodule hiraya-game
+ */
+
+var Class = require('../hiraya-core/class');
+
+/**
+ * A class for creating commands for entities. Use this to construct
+ * skills, abilities, etc.
+ *
+ * @class Command
+ * @extends Hiraya.Class
+ * @namespace Hiraya
+ */
+var Command = Class.extend({
+  /**
+   * Name of the command
+   *
+   * @property name
+   * @type {String}
+   */
+  name: null,
+
+  /**
+   * Base damage of this command
+   *
+   * @property damage
+   * @type {Number}
+   * @default 0
+   */
+  damage: 0
+
+});
+
+module.exports = Command;
+
+},{"../hiraya-core/class":2}],17:[function(require,module,exports){
 var createjs = typeof window === 'object' ? window.createjs : {};
 /**
  * @module hiraya
@@ -3015,7 +3052,7 @@ var Sprite = Emitter.extend({
    */
   faceLeft: function() {
     this.vector = -1;
-    this.view.scaleX *= this.vector;
+    this.view.scaleX = Math.abs(this.view.scaleX) * this.vector;
   },
 
   /**
@@ -3025,7 +3062,7 @@ var Sprite = Emitter.extend({
    */
   faceRight: function() {
     this.vector = 1;
-    this.view.scaleX *= this.vector;
+    this.view.scaleX = Math.abs(this.view.scaleX) * this.vector;
   },
 
   /**
